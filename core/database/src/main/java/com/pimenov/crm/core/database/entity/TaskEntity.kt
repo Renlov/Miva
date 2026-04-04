@@ -9,12 +9,13 @@ data class TaskEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String = "",
     val isDone: Boolean = false,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val reminderAt: Long? = null
 ) {
-    fun toDomain(): Task = Task(id, title, isDone, createdAt)
+    fun toDomain(): Task = Task(id, title, isDone, createdAt, reminderAt)
 
     companion object {
         fun fromDomain(task: Task): TaskEntity =
-            TaskEntity(task.id, task.title, task.isDone, task.createdAt)
+            TaskEntity(task.id, task.title, task.isDone, task.createdAt, task.reminderAt)
     }
 }

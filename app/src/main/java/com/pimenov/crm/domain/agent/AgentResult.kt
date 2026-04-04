@@ -12,5 +12,6 @@ data class ExtractedNote(
 )
 
 data class ExtractedTask(
-    val title: String
+    val title: String,
+    val reminderAt: Long? = null
 )

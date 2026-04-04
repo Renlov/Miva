@@ -59,6 +59,9 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.compose)
 
+    // WorkManager
+    implementation(libs.androidx.work.runtime)
+
     // Glance (App Widgets)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)

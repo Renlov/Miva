@@ -64,7 +64,13 @@ class TextAnalyzerAgent {
             if (tasksArray != null) {
                 for (i in 0 until tasksArray.length()) {
                     val taskObj = tasksArray.getJSONObject(i)
-                    add(ExtractedTask(title = taskObj.optString("title", "")))
+                    val reminderIso = taskObj.optString("reminder_at", "")
+                    add(
+                        ExtractedTask(
+                            title = taskObj.optString("title", ""),
+                            reminderAt = parseIsoTimestamp(reminderIso)
+                        )
+                    )
                 }
             }
         }
@@ -72,12 +78,24 @@ class TextAnalyzerAgent {
         return AgentResult(reply = reply, notes = notes, tasks = tasks)
     }
 
+    private fun parseIsoTimestamp(iso: String): Long? {
+        if (iso.isBlank() || iso == "null") return null
+        return try {
+            java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm", java.util.Locale.ROOT)
+                .parse(iso)?.time
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     companion object {
         private val SYSTEM_PROMPT = """
-            You are an intelligent CRM assistant. Your job is to:
+            You are an intelligent CRM assistant called MIVA. Your job is to:
             1. Have a helpful conversation with the user
             2. Analyze the user's message for actionable items
             3. Extract notes (important information to remember) and tasks (things to do)
+            4. Detect reminders — when user says "напомни", "не забудь", or asks for a reminder,
+               set reminder_at to the appropriate ISO datetime
 
             ALWAYS respond with valid JSON in this exact format:
             {
@@ -86,15 +104,19 @@ class TextAnalyzerAgent {
                 {"title": "Short title", "content": "Detailed content of the note"}
               ],
               "tasks": [
-                {"title": "Task description"}
+                {"title": "Task description", "reminder_at": "2025-01-15T09:00" or null}
               ]
             }
 
             Rules:
             - "reply" is ALWAYS required — your natural response to the user
-            - "notes" — extract when user shares important information, ideas, meeting notes, decisions, facts worth saving
-            - "tasks" — extract when user mentions something that needs to be done, deadlines, action items, reminders
-            - If there are no notes or tasks to extract, return empty arrays: "notes": [], "tasks": []
+            - "notes" — extract when user shares important information, ideas, meeting notes, decisions
+            - "tasks" — extract when user mentions something that needs to be done, deadlines, reminders
+            - "reminder_at" — ISO datetime (yyyy-MM-ddTHH:mm) when user wants to be reminded.
+              Use null if no specific time is mentioned.
+              "завтра" = next day at 09:00, "послезавтра" = day after tomorrow at 09:00,
+              "в пятницу" = next Friday at 09:00, etc.
+            - If there are no notes or tasks, return empty arrays
             - Keep note titles short (3-5 words), content detailed
             - Keep task titles actionable and clear
             - Respond in the same language the user writes in

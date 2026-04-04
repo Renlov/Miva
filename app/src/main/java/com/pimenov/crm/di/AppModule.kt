@@ -3,7 +3,9 @@ package com.pimenov.crm.di
 import com.pimenov.crm.data.preferences.AppPreferences
 import com.pimenov.crm.data.repository.ChatRepositoryImpl
 import com.pimenov.crm.data.repository.SettingsRepositoryImpl
+import com.pimenov.crm.domain.agent.IntentParser
 import com.pimenov.crm.domain.agent.TextAnalyzerAgent
+import com.pimenov.crm.domain.reminder.ReminderScheduler
 import com.pimenov.crm.domain.repository.ChatRepository
 import com.pimenov.crm.domain.repository.SettingsRepository
 import com.pimenov.crm.ui.chat.ChatViewModel
@@ -18,12 +20,14 @@ val appModule = module {
     // Preferences
     single { AppPreferences(androidContext()) }
 
-    // Agent
+    // Agent & Parser
     single { TextAnalyzerAgent() }
+    single { IntentParser() }
+    single { ReminderScheduler(androidContext()) }
 
     // Repositories
     single<SettingsRepository> { SettingsRepositoryImpl(get()) }
-    single<ChatRepository> { ChatRepositoryImpl(get(), get(), get(), get(), get()) }
+    single<ChatRepository> { ChatRepositoryImpl(get(), get(), get(), get(), get(), get(), get()) }
 
     // ViewModels
     viewModel { NotesViewModel(get(), get(), get(), get(), get()) }

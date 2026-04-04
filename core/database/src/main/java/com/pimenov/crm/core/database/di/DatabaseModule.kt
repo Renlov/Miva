@@ -31,6 +31,7 @@ val databaseModule = module {
     // Database
     single {
         Room.databaseBuilder(androidContext(), AppDatabase::class.java, "crm_database")
+            .addMigrations(AppDatabase.MIGRATION_1_2)
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
