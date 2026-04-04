@@ -41,6 +41,9 @@ android {
 }
 
 dependencies {
+    implementation(project(":feature:settings:api"))
+    implementation(project(":feature:settings:impl"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

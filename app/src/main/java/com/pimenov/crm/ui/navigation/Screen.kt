@@ -6,12 +6,13 @@ import androidx.compose.material.icons.automirrored.rounded.Notes
 import androidx.compose.material.icons.rounded.Checklist
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.pimenov.crm.feature.settings.api.SettingsNavigationRoute
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
     data object Notes : Screen("notes", "Заметки", Icons.AutoMirrored.Rounded.Notes)
     data object Chat : Screen("chat", "AI Чат", Icons.AutoMirrored.Rounded.Chat)
     data object Tasks : Screen("tasks", "Задачи", Icons.Rounded.Checklist)
-    data object Settings : Screen("settings", "Настройки", Icons.Rounded.Settings)
+    data object Settings : Screen(SettingsNavigationRoute.ROOT, "Настройки", Icons.Rounded.Settings)
 }
 
 data object NoteEditor {
