@@ -40,11 +40,13 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navigateTo = intent?.getStringExtra(OpenTasksAction.EXTRA_NAVIGATE_TO)
                 if (navigateTo != null) {
-                    androidx.compose.runtime.LaunchedEffect(navigateTo) {
+                    androidx.compose.runtime.LaunchedEffect(Unit) {
                         navController.navigate(Screen.Tasks.route) {
-                            popUpTo(Screen.Notes.route) { inclusive = false }
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true
+                            restoreState = true
                         }
+                        intent?.removeExtra(OpenTasksAction.EXTRA_NAVIGATE_TO)
                     }
                 }
                 Scaffold(
