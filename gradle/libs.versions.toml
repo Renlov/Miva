@@ -51,10 +51,6 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
-# Firebase
-firebase-bom = { group = "com.google.firebase:firebase-bom", name = "firebase-bom", version.ref = "firebase" }
-firebase-analitics = { group = "com.google.firebase:firebase-analytics", name = "firebase-analytics" }
-
 # Koin
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 
