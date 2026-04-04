@@ -1,21 +1,23 @@
 package com.pimenov.crm.data.repository
 
-import com.google.firebase.Firebase
-import com.google.firebase.ai.ai
-import com.google.firebase.ai.type.GenerativeBackend
-import com.google.firebase.ai.type.content
 import com.pimenov.crm.core.database.model.ChatMessage
+import com.pimenov.crm.core.database.model.Note
+import com.pimenov.crm.core.database.model.Task
 import com.pimenov.crm.core.database.usecase.GetChatMessagesUseCase
 import com.pimenov.crm.core.database.usecase.InsertChatMessageUseCase
+import com.pimenov.crm.core.database.usecase.SaveNoteUseCase
+import com.pimenov.crm.core.database.usecase.SaveTaskUseCase
+import com.pimenov.crm.domain.agent.AgentResult
+import com.pimenov.crm.domain.agent.TextAnalyzerAgent
 import com.pimenov.crm.domain.repository.ChatRepository
 
 class ChatRepositoryImpl(
     private val insertChatMessage: InsertChatMessageUseCase,
-    private val getChatMessages: GetChatMessagesUseCase
+    private val getChatMessages: GetChatMessagesUseCase,
+    private val saveNote: SaveNoteUseCase,
+    private val saveTask: SaveTaskUseCase,
+    private val agent: TextAnalyzerAgent
 ) : ChatRepository {
-
-    private val model = Firebase.ai(backend = GenerativeBackend.googleAI())
-        .generativeModel("gemini-2.0-flash")
 
     override suspend fun sendMessage(conversationId: Long, userMessage: String): Result<ChatMessage> {
         val userMsg = ChatMessage(
@@ -27,23 +29,52 @@ class ChatRepositoryImpl(
 
         return runCatching {
             val allMessages = getChatMessages(conversationId)
-            val history = allMessages.dropLast(1).map { msg ->
-                val role = if (msg.role == "user") "user" else "model"
-                content(role = role) { text(msg.content) }
-            }
+            val history = allMessages.dropLast(1)
 
-            val chat = model.startChat(history = history)
-            val response = chat.sendMessage(userMessage)
+            val agentResult = agent.analyze(history, userMessage)
 
-            val assistantContent = response.text ?: "Нет ответа"
+            saveExtractedItems(agentResult)
+
+            val replyText = buildReplyText(agentResult)
 
             val assistantMsg = ChatMessage(
                 conversationId = conversationId,
                 role = "assistant",
-                content = assistantContent
+                content = replyText
             )
             insertChatMessage(assistantMsg)
             assistantMsg
+        }
+    }
+
+    private suspend fun saveExtractedItems(result: AgentResult) {
+        for (note in result.notes) {
+            saveNote(Note(title = note.title, content = note.content))
+        }
+        for (task in result.tasks) {
+            saveTask(Task(title = task.title))
+        }
+    }
+
+    private fun buildReplyText(result: AgentResult): String = buildString {
+        append(result.reply)
+
+        if (result.notes.isNotEmpty() || result.tasks.isNotEmpty()) {
+            append("\n\n---")
+        }
+
+        if (result.notes.isNotEmpty()) {
+            append("\n\uD83D\uDCDD Создано заметок: ${result.notes.size}")
+            for (note in result.notes) {
+                append("\n  • ${note.title}")
+            }
+        }
+
+        if (result.tasks.isNotEmpty()) {
+            append("\n\u2705 Создано задач: ${result.tasks.size}")
+            for (task in result.tasks) {
+                append("\n  • ${task.title}")
+            }
         }
     }
 }
