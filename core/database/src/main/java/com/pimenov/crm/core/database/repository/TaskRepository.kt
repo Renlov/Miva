@@ -1,6 +1,6 @@
-package com.pimenov.crm.domain.repository
+package com.pimenov.crm.core.database.repository
 
-import com.pimenov.crm.domain.model.Task
+import com.pimenov.crm.core.database.model.Task
 import kotlinx.coroutines.flow.Flow
 
 interface TaskRepository {

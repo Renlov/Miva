@@ -1,8 +1,8 @@
-package com.pimenov.crm.data.local.entity
+package com.pimenov.crm.core.database.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.pimenov.crm.domain.model.Note
+import com.pimenov.crm.core.database.model.Note
 
 @Entity(tableName = "notes")
 data class NoteEntity(

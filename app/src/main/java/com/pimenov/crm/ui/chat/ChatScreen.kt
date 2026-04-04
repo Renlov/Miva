@@ -46,7 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.pimenov.crm.domain.model.ChatMessage
+import com.pimenov.crm.core.database.model.ChatMessage
 import com.pimenov.uikit.UiCoreString
 import org.koin.androidx.compose.koinViewModel
 

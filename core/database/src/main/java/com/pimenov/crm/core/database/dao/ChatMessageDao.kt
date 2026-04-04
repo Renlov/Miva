@@ -1,9 +1,9 @@
-package com.pimenov.crm.data.local.dao
+package com.pimenov.crm.core.database.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.pimenov.crm.data.local.entity.ChatMessageEntity
+import com.pimenov.crm.core.database.entity.ChatMessageEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -1,4 +1,4 @@
-package com.pimenov.crm.domain.model
+package com.pimenov.crm.core.database.model
 
 data class ChatMessage(
     val id: Long = 0,

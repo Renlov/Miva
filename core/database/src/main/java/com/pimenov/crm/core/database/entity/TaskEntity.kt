@@ -1,8 +1,8 @@
-package com.pimenov.crm.data.local.entity
+package com.pimenov.crm.core.database.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.pimenov.crm.domain.model.Task
+import com.pimenov.crm.core.database.model.Task
 
 @Entity(tableName = "tasks")
 data class TaskEntity(

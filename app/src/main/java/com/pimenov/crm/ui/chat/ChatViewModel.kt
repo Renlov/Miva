@@ -2,7 +2,9 @@ package com.pimenov.crm.ui.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pimenov.crm.domain.model.ChatMessage
+import com.pimenov.crm.core.database.usecase.NewConversationIdUseCase
+import com.pimenov.crm.core.database.usecase.ObserveChatMessagesUseCase
+import com.pimenov.crm.core.database.usecase.ObserveConversationsUseCase
 import com.pimenov.crm.domain.repository.ChatRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,17 +20,22 @@ data class ChatState(
     val error: String? = null
 )
 
-class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
+class ChatViewModel(
+    private val chatRepository: ChatRepository,
+    observeChatMessages: ObserveChatMessagesUseCase,
+    observeConversations: ObserveConversationsUseCase,
+    private val newConversationId: NewConversationIdUseCase
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatState())
     val state = _state.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val messages = _state.flatMapLatest { s ->
-        repository.observeMessages(s.conversationId)
+        observeChatMessages(s.conversationId)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val conversations = repository.observeConversations()
+    val conversations = observeConversations()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun sendMessage(text: String) {
@@ -36,7 +43,7 @@ class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
         val convId = _state.value.conversationId
         _state.value = _state.value.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            val result = repository.sendMessage(convId, text)
+            val result = chatRepository.sendMessage(convId, text)
             _state.value = _state.value.copy(
                 isLoading = false,
                 error = result.exceptionOrNull()?.message
@@ -46,7 +53,7 @@ class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
 
     fun newConversation() {
         viewModelScope.launch {
-            val id = repository.newConversationId()
+            val id = newConversationId()
             _state.value = _state.value.copy(conversationId = id, error = null)
         }
     }
