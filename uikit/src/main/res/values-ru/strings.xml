@@ -33,6 +33,7 @@
     <string name="tasks_new_hint">Новая задача…</string>
     <string name="tasks_add">Добавить</string>
     <string name="tasks_delete">Удалить</string>
+    <string name="tasks_empty">Пока нет задач</string>
     <string name="tasks_filter_all">Все</string>
     <string name="tasks_filter_active">Активные</string>
     <string name="tasks_filter_done">Готово</string>

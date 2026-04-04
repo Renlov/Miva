@@ -127,6 +127,20 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
 
             Spacer(Modifier.height(12.dp))
 
+            if (tasks.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(UiCoreString.tasks_empty),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(tasks, key = { it.id }) { task ->
                     Card(

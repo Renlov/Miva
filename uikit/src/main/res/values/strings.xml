@@ -33,6 +33,7 @@
     <string name="tasks_new_hint">New task…</string>
     <string name="tasks_add">Add</string>
     <string name="tasks_delete">Delete</string>
+    <string name="tasks_empty">No tasks yet</string>
     <string name="tasks_filter_all">All</string>
     <string name="tasks_filter_active">Active</string>
     <string name="tasks_filter_done">Done</string>
