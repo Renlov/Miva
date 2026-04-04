@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -50,6 +51,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.firebase.bom)
+    implementation(libs.firebase.analitics)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -70,6 +73,7 @@ dependencies {
 
     // DataStore
     implementation(libs.androidx.datastore.preferences)
+
 
     // Testing
     testImplementation(libs.junit)
