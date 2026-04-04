@@ -1,13 +1,13 @@
-package com.pimenov.crm.data.local
+package com.pimenov.crm.core.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.pimenov.crm.data.local.dao.ChatMessageDao
-import com.pimenov.crm.data.local.dao.NoteDao
-import com.pimenov.crm.data.local.dao.TaskDao
-import com.pimenov.crm.data.local.entity.ChatMessageEntity
-import com.pimenov.crm.data.local.entity.NoteEntity
-import com.pimenov.crm.data.local.entity.TaskEntity
+import com.pimenov.crm.core.database.dao.ChatMessageDao
+import com.pimenov.crm.core.database.dao.NoteDao
+import com.pimenov.crm.core.database.dao.TaskDao
+import com.pimenov.crm.core.database.entity.ChatMessageEntity
+import com.pimenov.crm.core.database.entity.NoteEntity
+import com.pimenov.crm.core.database.entity.TaskEntity
 
 @Database(
     entities = [NoteEntity::class, ChatMessageEntity::class, TaskEntity::class],

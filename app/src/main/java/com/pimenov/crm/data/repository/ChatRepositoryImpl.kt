@@ -1,40 +1,38 @@
 package com.pimenov.crm.data.repository
 
-import com.pimenov.crm.data.local.dao.ChatMessageDao
-import com.pimenov.crm.data.local.entity.ChatMessageEntity
+import com.pimenov.crm.core.database.model.ChatMessage
+import com.pimenov.crm.core.database.usecase.DeleteConversationUseCase
+import com.pimenov.crm.core.database.usecase.GetChatMessagesUseCase
+import com.pimenov.crm.core.database.usecase.InsertChatMessageUseCase
+import com.pimenov.crm.core.database.usecase.NewConversationIdUseCase
+import com.pimenov.crm.core.database.usecase.ObserveChatMessagesUseCase
+import com.pimenov.crm.core.database.usecase.ObserveConversationsUseCase
 import com.pimenov.crm.data.remote.AiApiService
 import com.pimenov.crm.data.remote.dto.ChatRequestBody
 import com.pimenov.crm.data.remote.dto.MessageDto
-import com.pimenov.crm.domain.model.ChatMessage
 import com.pimenov.crm.domain.repository.ChatRepository
 import com.pimenov.crm.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 
 class ChatRepositoryImpl(
-    private val dao: ChatMessageDao,
+    private val insertChatMessage: InsertChatMessageUseCase,
+    private val getChatMessages: GetChatMessagesUseCase,
     private val api: AiApiService,
     private val settingsRepository: SettingsRepository
 ) : ChatRepository {
 
-    override fun observeMessages(conversationId: Long): Flow<List<ChatMessage>> =
-        dao.observeMessages(conversationId).map { list -> list.map { it.toDomain() } }
-
-    override fun observeConversations(): Flow<List<Long>> =
-        dao.observeConversations()
-
     override suspend fun sendMessage(conversationId: Long, userMessage: String): Result<ChatMessage> {
-        val userEntity = ChatMessageEntity(
+        val userMsg = ChatMessage(
             conversationId = conversationId,
             role = "user",
             content = userMessage
         )
-        dao.insert(userEntity)
+        insertChatMessage(userMsg)
 
         return runCatching {
             val apiKey = settingsRepository.observeSettings().first().apiKey
-            val history = dao.getMessages(conversationId).map {
+            val history = getChatMessages(conversationId).map {
                 MessageDto(role = it.role, content = it.content)
             }
 
@@ -46,20 +44,13 @@ class ChatRepositoryImpl(
             val assistantContent = response.choices.firstOrNull()?.message?.content
                 ?: "Нет ответа"
 
-            val assistantEntity = ChatMessageEntity(
+            val assistantMsg = ChatMessage(
                 conversationId = conversationId,
                 role = "assistant",
                 content = assistantContent
             )
-            dao.insert(assistantEntity)
-            assistantEntity.toDomain()
+            insertChatMessage(assistantMsg)
+            assistantMsg
         }
     }
-
-    override suspend fun deleteConversation(conversationId: Long) =
-        dao.deleteConversation(conversationId)
-
-    override suspend fun deleteAll() = dao.deleteAll()
-
-    override suspend fun newConversationId(): Long = dao.nextConversationId()
 }

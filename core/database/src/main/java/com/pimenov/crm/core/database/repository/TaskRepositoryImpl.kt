@@ -1,13 +1,12 @@
-package com.pimenov.crm.data.repository
+package com.pimenov.crm.core.database.repository
 
-import com.pimenov.crm.data.local.dao.TaskDao
-import com.pimenov.crm.data.local.entity.TaskEntity
-import com.pimenov.crm.domain.model.Task
-import com.pimenov.crm.domain.repository.TaskRepository
+import com.pimenov.crm.core.database.dao.TaskDao
+import com.pimenov.crm.core.database.entity.TaskEntity
+import com.pimenov.crm.core.database.model.Task
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class TaskRepositoryImpl(private val dao: TaskDao) : TaskRepository {
+internal class TaskRepositoryImpl(private val dao: TaskDao) : TaskRepository {
 
     override fun observeAll(): Flow<List<Task>> =
         dao.observeAll().map { list -> list.map { it.toDomain() } }

@@ -2,8 +2,11 @@ package com.pimenov.crm.ui.tasks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pimenov.crm.domain.model.Task
-import com.pimenov.crm.domain.repository.TaskRepository
+import com.pimenov.crm.core.database.model.Task
+import com.pimenov.crm.core.database.usecase.DeleteTaskUseCase
+import com.pimenov.crm.core.database.usecase.ObserveTasksUseCase
+import com.pimenov.crm.core.database.usecase.SaveTaskUseCase
+import com.pimenov.crm.core.database.usecase.ToggleTaskDoneUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,12 +16,17 @@ import kotlinx.coroutines.launch
 
 enum class TaskFilter { ALL, ACTIVE, DONE }
 
-class TasksViewModel(private val repository: TaskRepository) : ViewModel() {
+class TasksViewModel(
+    observeTasks: ObserveTasksUseCase,
+    private val saveTask: SaveTaskUseCase,
+    private val toggleTaskDone: ToggleTaskDoneUseCase,
+    private val deleteTask: DeleteTaskUseCase
+) : ViewModel() {
 
     private val _filter = MutableStateFlow(TaskFilter.ALL)
     val filter = _filter.asStateFlow()
 
-    val tasks = combine(repository.observeAll(), _filter) { all, f ->
+    val tasks = combine(observeTasks(), _filter) { all, f ->
         when (f) {
             TaskFilter.ALL -> all
             TaskFilter.ACTIVE -> all.filter { !it.isDone }
@@ -32,14 +40,14 @@ class TasksViewModel(private val repository: TaskRepository) : ViewModel() {
 
     fun addTask(title: String) {
         if (title.isBlank()) return
-        viewModelScope.launch { repository.save(Task(title = title)) }
+        viewModelScope.launch { saveTask(Task(title = title)) }
     }
 
     fun toggleDone(id: Long) {
-        viewModelScope.launch { repository.toggleDone(id) }
+        viewModelScope.launch { toggleTaskDone(id) }
     }
 
     fun deleteTask(id: Long) {
-        viewModelScope.launch { repository.delete(id) }
+        viewModelScope.launch { deleteTask.invoke(id) }
     }
 }

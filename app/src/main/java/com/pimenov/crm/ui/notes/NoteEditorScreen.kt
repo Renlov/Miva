@@ -30,7 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pimenov.crm.domain.model.Note
+import com.pimenov.crm.core.database.model.Note
 import com.pimenov.uikit.UiCoreString
 import org.koin.androidx.compose.koinViewModel
 

@@ -1,8 +1,8 @@
-package com.pimenov.crm.data.local.entity
+package com.pimenov.crm.core.database.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.pimenov.crm.domain.model.ChatMessage
+import com.pimenov.crm.core.database.model.ChatMessage
 
 @Entity(tableName = "chat_messages")
 data class ChatMessageEntity(

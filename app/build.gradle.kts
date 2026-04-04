@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
 }
 
@@ -43,6 +42,7 @@ android {
 
 dependencies {
     implementation(project(":uikit"))
+    implementation(project(":core:database"))
     implementation(project(":feature:settings:api"))
     implementation(project(":feature:settings:impl"))
 
@@ -58,11 +58,6 @@ dependencies {
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
-
-    // Room
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
 
     // Koin
     implementation(libs.koin.androidx.compose)

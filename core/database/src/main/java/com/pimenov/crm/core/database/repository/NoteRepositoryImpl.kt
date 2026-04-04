@@ -1,13 +1,12 @@
-package com.pimenov.crm.data.repository
+package com.pimenov.crm.core.database.repository
 
-import com.pimenov.crm.data.local.dao.NoteDao
-import com.pimenov.crm.data.local.entity.NoteEntity
-import com.pimenov.crm.domain.model.Note
-import com.pimenov.crm.domain.repository.NoteRepository
+import com.pimenov.crm.core.database.dao.NoteDao
+import com.pimenov.crm.core.database.entity.NoteEntity
+import com.pimenov.crm.core.database.model.Note
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class NoteRepositoryImpl(private val dao: NoteDao) : NoteRepository {
+internal class NoteRepositoryImpl(private val dao: NoteDao) : NoteRepository {
 
     override fun observeAll(): Flow<List<Note>> =
         dao.observeAll().map { list -> list.map { it.toDomain() } }
