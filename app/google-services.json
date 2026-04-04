@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "114025313035",
+    "project_id": "miva-35a9b",
+    "storage_bucket": "miva-35a9b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:114025313035:android:fa3ce4c288ddba90b8e80e",
+        "android_client_info": {
+          "package_name": "com.pimenov.crm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvMj8HkPngWngul9Ia2dlmUKnNAPVGUUo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
