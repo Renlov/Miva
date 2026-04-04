@@ -61,4 +61,8 @@ class ChatViewModel(
     fun selectConversation(id: Long) {
         _state.value = _state.value.copy(conversationId = id, error = null)
     }
+
+    fun clearError() {
+        _state.value = _state.value.copy(error = null)
+    }
 }
