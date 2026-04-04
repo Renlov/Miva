@@ -6,14 +6,11 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.updateAll
 import com.pimenov.crm.core.database.repository.TaskRepository
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.koin.core.context.GlobalContext
 
 val taskIdKey = ActionParameters.Key<Long>("task_id")
 
-class ToggleTaskAction : ActionCallback, KoinComponent {
-
-    private val taskRepository: TaskRepository by inject()
+class ToggleTaskAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -21,7 +18,8 @@ class ToggleTaskAction : ActionCallback, KoinComponent {
         parameters: ActionParameters
     ) {
         val id = parameters[taskIdKey] ?: return
-        taskRepository.toggleDone(id)
+        val repository = GlobalContext.get().get<TaskRepository>()
+        repository.toggleDone(id)
         TasksWidget().updateAll(context)
     }
 }

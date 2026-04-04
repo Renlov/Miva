@@ -16,7 +16,9 @@ import com.pimenov.crm.feature.settings.impl.data.SettingsPreferences
 import com.pimenov.crm.feature.settings.impl.data.ThemeMode
 import com.pimenov.crm.ui.navigation.AppNavGraph
 import com.pimenov.crm.ui.navigation.BottomNavBar
+import com.pimenov.crm.ui.navigation.Screen
 import com.pimenov.crm.ui.theme.CrmTheme
+import com.pimenov.crm.widget.OpenTasksAction
 import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
@@ -36,6 +38,15 @@ class MainActivity : ComponentActivity() {
 
             CrmTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
+                val navigateTo = intent?.getStringExtra(OpenTasksAction.EXTRA_NAVIGATE_TO)
+                if (navigateTo != null) {
+                    androidx.compose.runtime.LaunchedEffect(navigateTo) {
+                        navController.navigate(Screen.Tasks.route) {
+                            popUpTo(Screen.Notes.route) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                }
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = { BottomNavBar(navController) }

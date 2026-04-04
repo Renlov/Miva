@@ -1,6 +1,7 @@
 package com.pimenov.crm.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -8,10 +9,10 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.action.actionParametersOf
-import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
@@ -28,22 +29,20 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
+import androidx.glance.text.TextAlign
 import androidx.glance.text.TextDecoration
 import androidx.glance.text.TextStyle
 import androidx.glance.color.ColorProvider
-import com.pimenov.crm.MainActivity
 import com.pimenov.crm.core.database.model.Task
-import com.pimenov.crm.core.database.repository.TaskRepository
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import kotlinx.coroutines.flow.first
+import org.koin.core.context.GlobalContext
 
-class TasksWidget : GlanceAppWidget(), KoinComponent {
-
-    private val taskRepository: TaskRepository by inject()
+class TasksWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val tasks = taskRepository.observeAll().first()
+        val koin = GlobalContext.get()
+        val repository = koin.get<com.pimenov.crm.core.database.repository.TaskRepository>()
+        val tasks = repository.observeAll().first()
 
         provideContent {
             GlanceTheme {
@@ -69,48 +68,78 @@ private val doneCheckColor = ColorProvider(
     day = androidx.compose.ui.graphics.Color(0xFF4CAF50),
     night = androidx.compose.ui.graphics.Color(0xFF81C784)
 )
+private val accentColor = ColorProvider(
+    day = androidx.compose.ui.graphics.Color(0xFF6750A4),
+    night = androidx.compose.ui.graphics.Color(0xFFD0BCFF)
+)
+private val onAccentColor = ColorProvider(
+    day = androidx.compose.ui.graphics.Color.White,
+    night = androidx.compose.ui.graphics.Color(0xFF381E72)
+)
 
 @Composable
 private fun TasksWidgetContent(tasks: List<Task>) {
-    Box(
+    Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(bgColor)
-            .clickable(actionStartActivity<MainActivity>())
+            .padding(16.dp)
     ) {
-        Column(
-            modifier = GlanceModifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "TODO",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = titleColor
-                )
+        Text(
+            text = "MIVA",
+            style = TextStyle(
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = titleColor
             )
+        )
 
-            Spacer(modifier = GlanceModifier.height(8.dp))
+        Spacer(modifier = GlanceModifier.height(8.dp))
 
-            if (tasks.isEmpty()) {
-                Box(
-                    modifier = GlanceModifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Нет задач",
-                        style = TextStyle(fontSize = 14.sp, color = mutedColor)
-                    )
-                }
-            } else {
-                LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
-                    items(tasks, itemId = { it.id }) { task ->
-                        TaskItem(task = task)
-                    }
+        if (tasks.isEmpty()) {
+            Box(
+                modifier = GlanceModifier
+                    .defaultWeight()
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Нет задач",
+                    style = TextStyle(fontSize = 14.sp, color = mutedColor)
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = GlanceModifier
+                    .defaultWeight()
+                    .fillMaxWidth()
+            ) {
+                items(tasks, itemId = { it.id }) { task ->
+                    TaskItem(task = task)
                 }
             }
+        }
+
+        Spacer(modifier = GlanceModifier.height(8.dp))
+
+        Box(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .cornerRadius(20.dp)
+                .background(accentColor)
+                .clickable(actionRunCallback<OpenTasksAction>()),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Открыть задачи",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = onAccentColor,
+                    textAlign = TextAlign.Center
+                )
+            )
         }
     }
 }
@@ -123,7 +152,7 @@ private fun TaskItem(task: Task) {
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 6.dp)
             .clickable(
                 actionRunCallback<ToggleTaskAction>(
                     actionParametersOf(taskIdKey to task.id)
@@ -132,8 +161,8 @@ private fun TaskItem(task: Task) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = if (task.isDone) "☑" else "☐",
-            style = TextStyle(fontSize = 16.sp, color = checkColor)
+            text = if (task.isDone) "✅" else "⬜",
+            style = TextStyle(fontSize = 18.sp, color = checkColor)
         )
 
         Spacer(modifier = GlanceModifier.width(8.dp))
