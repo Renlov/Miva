@@ -1,6 +1,6 @@
 package com.pimenov.crm.ui.chat
 
-import androidx.compose.animation.AnimatedVisibility
+import com.pimenov.uikit.ErrorAlertDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -61,6 +61,13 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
         if (messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.lastIndex)
         }
+    }
+
+    if (state.error != null) {
+        ErrorAlertDialog(
+            message = state.error.orEmpty(),
+            onDismiss = { viewModel.clearError() }
+        )
     }
 
     Scaffold { padding ->
@@ -129,16 +136,6 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
                     }
                 }
                 item { Spacer(Modifier.height(8.dp)) }
-            }
-
-            // Error
-            AnimatedVisibility(visible = state.error != null) {
-                Text(
-                    text = state.error ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
-                )
             }
 
             // Input
