@@ -10,33 +10,39 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,7 +56,7 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
     val tasks by viewModel.tasks.collectAsState()
     val filter by viewModel.filter.collectAsState()
     val pendingDelete by viewModel.pendingDelete.collectAsState()
-    var newTaskText by rememberSaveable { mutableStateOf("") }
+    var showAddDialog by rememberSaveable { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -68,41 +74,7 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
 
             Spacer(Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = newTaskText,
-                    onValueChange = { newTaskText = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text(stringResource(UiCoreString.tasks_new_hint)) },
-                    shape = RoundedCornerShape(16.dp),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    )
-                )
-                Spacer(Modifier.width(8.dp))
-                IconButton(
-                    onClick = {
-                        viewModel.addTask(newTaskText.trim())
-                        newTaskText = ""
-                    },
-                    enabled = newTaskText.isNotBlank()
-                ) {
-                    Icon(
-                        Icons.Rounded.Add,
-                        contentDescription = stringResource(UiCoreString.tasks_add),
-                        tint = if (newTaskText.isNotBlank()) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
+            // Filters
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TaskFilter.entries.forEach { f ->
                     FilterChip(
@@ -191,6 +163,20 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
             }
         }
 
+        // FAB
+        FloatingActionButton(
+            onClick = { showAddDialog = true },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp)
+        ) {
+            Icon(Icons.Rounded.Add, contentDescription = stringResource(UiCoreString.tasks_add))
+        }
+
+        // Undo snackbar
         val pending = pendingDelete
         if (pending != null) {
             UndoDeleteSnackbar(
@@ -204,4 +190,67 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
             )
         }
     }
+
+    // Add task dialog
+    if (showAddDialog) {
+        AddTaskDialog(
+            onDismiss = { showAddDialog = false },
+            onConfirm = { title ->
+                viewModel.addTask(title)
+                showAddDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun AddTaskDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var text by rememberSaveable { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(UiCoreString.tasks_add),
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                placeholder = { Text(stringResource(UiCoreString.tasks_new_hint)) },
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(text.trim()) },
+                enabled = text.isNotBlank()
+            ) {
+                Text(stringResource(UiCoreString.tasks_add))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(UiCoreString.action_cancel))
+            }
+        }
+    )
 }
