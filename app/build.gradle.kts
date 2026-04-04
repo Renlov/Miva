@@ -59,6 +59,10 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.compose)
 
+    // Glance (App Widgets)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
+
     // Koin
     implementation(libs.koin.androidx.compose)
 
