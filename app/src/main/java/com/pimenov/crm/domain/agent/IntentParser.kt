@@ -88,6 +88,14 @@ class IntentParser {
                 cal.add(Calendar.MINUTE, 30)
                 return cal.timeInMillis
             }
+            lower.contains("через минуту") || lower.contains("через минутку") -> {
+                cal.add(Calendar.MINUTE, 1)
+                return cal.timeInMillis
+            }
+            lower.contains("через час") -> {
+                cal.add(Calendar.HOUR_OF_DAY, 1)
+                return cal.timeInMillis
+            }
             THROUGH_MINUTES_PATTERN.find(lower) != null -> {
                 val raw = THROUGH_MINUTES_PATTERN.find(lower)!!.groupValues[1]
                 val mins = parseNumber(raw)
@@ -162,7 +170,7 @@ class IntentParser {
         private const val DEFAULT_HOUR = 9
 
         private val REMINDER_PATTERN = Regex(
-            "(?:напомни|напомнить|напоминание|не забыть|не забудь)"
+            "(?:напомни|напомнить|напоминание|не забыть|не забудь|разбуди|разбудить|разбудите|поставь будильник|поставь таймер|поставь напоминание|предупреди|уведоми|уведомить|сигнал через|алярм)"
         )
 
         private val TASK_PATTERN = Regex(
@@ -204,6 +212,7 @@ class IntentParser {
             Regex("в\\s+(?:понедельник|вторник|среду|четверг|пятницу|субботу|воскресенье)\\s*(?:в\\s+\\d{1,2}:\\d{2})?"),
             Regex("через\\s+$WORD_OR_DIGIT\\s*(?:минут|час)\\w*"),
             Regex("через\\s+полчаса"),
+            Regex("через\\s+минутк?у"),
             Regex("через\\s+час"),
             Regex("в\\s+\\d{1,2}:\\d{2}")
         )
