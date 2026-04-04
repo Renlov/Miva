@@ -9,6 +9,7 @@ import com.pimenov.crm.core.database.usecase.SaveTaskUseCase
 import com.pimenov.crm.core.database.usecase.ToggleTaskDoneUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import com.pimenov.uikit.UNDO_TIMEOUT_SECONDS
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,11 +24,7 @@ enum class TaskFilter { ALL, ACTIVE, DONE }
 data class PendingDelete(
     val task: Task,
     val remainingSeconds: Int = UNDO_TIMEOUT_SECONDS
-) {
-    companion object {
-        const val UNDO_TIMEOUT_SECONDS = 5
-    }
-}
+)
 
 class TasksViewModel(
     observeTasks: ObserveTasksUseCase,
@@ -78,7 +75,7 @@ class TasksViewModel(
             deleteTask.invoke(task.id)
 
             // Countdown
-            for (i in PendingDelete.UNDO_TIMEOUT_SECONDS downTo 1) {
+            for (i in UNDO_TIMEOUT_SECONDS downTo 1) {
                 _pendingDelete.value = _pendingDelete.value?.copy(remainingSeconds = i)
                 delay(1_000)
             }

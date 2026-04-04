@@ -8,13 +8,21 @@ import com.pimenov.crm.core.database.usecase.GetNoteByIdUseCase
 import com.pimenov.crm.core.database.usecase.ObserveNotesUseCase
 import com.pimenov.crm.core.database.usecase.SaveNoteUseCase
 import com.pimenov.crm.core.database.usecase.SearchNotesUseCase
+import com.pimenov.uikit.UNDO_TIMEOUT_SECONDS
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+data class PendingNoteDelete(
+    val note: Note,
+    val remainingSeconds: Int = UNDO_TIMEOUT_SECONDS
+)
 
 class NotesViewModel(
     private val observeNotes: ObserveNotesUseCase,
@@ -27,6 +35,11 @@ class NotesViewModel(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
+    private val _pendingDelete = MutableStateFlow<PendingNoteDelete?>(null)
+    val pendingDelete = _pendingDelete.asStateFlow()
+
+    private var deleteJob: Job? = null
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val notes = _searchQuery.flatMapLatest { query ->
         if (query.isBlank()) observeNotes()
@@ -37,13 +50,49 @@ class NotesViewModel(
         _searchQuery.value = query
     }
 
-    fun deleteNote(id: Long) {
-        viewModelScope.launch { deleteNote.invoke(id) }
+    fun requestDelete(note: Note) {
+        // Finalize any previous pending delete
+        finalizePendingDelete()
+
+        _pendingDelete.value = PendingNoteDelete(note = note)
+        deleteJob = viewModelScope.launch {
+            deleteNote.invoke(note.id)
+
+            for (i in UNDO_TIMEOUT_SECONDS downTo 1) {
+                _pendingDelete.value = _pendingDelete.value?.copy(remainingSeconds = i)
+                delay(1_000)
+            }
+
+            _pendingDelete.value = null
+        }
+    }
+
+    fun undoDelete() {
+        val pending = _pendingDelete.value ?: return
+        deleteJob?.cancel()
+        deleteJob = null
+        _pendingDelete.value = null
+
+        viewModelScope.launch {
+            saveNote.invoke(pending.note)
+        }
+    }
+
+    fun dismissDelete() {
+        deleteJob?.cancel()
+        deleteJob = null
+        _pendingDelete.value = null
     }
 
     suspend fun getNote(id: Long): Note? = getNoteById(id)
 
     fun saveNote(note: Note) {
         viewModelScope.launch { saveNote.invoke(note) }
+    }
+
+    private fun finalizePendingDelete() {
+        deleteJob?.cancel()
+        deleteJob = null
+        _pendingDelete.value = null
     }
 }

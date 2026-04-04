@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,7 +21,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -31,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,11 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pimenov.uikit.UiCoreString
+import com.pimenov.uikit.UndoDeleteSnackbar
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -71,7 +68,6 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
 
             Spacer(Modifier.height(16.dp))
 
-            // Add task
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -107,7 +103,6 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
 
             Spacer(Modifier.height(12.dp))
 
-            // Filters
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TaskFilter.entries.forEach { f ->
                     FilterChip(
@@ -132,9 +127,7 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
 
             Spacer(Modifier.height(12.dp))
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(tasks, key = { it.id }) { task ->
                     Card(
                         modifier = Modifier
@@ -184,87 +177,17 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
             }
         }
 
-        // Undo snackbar
         val pending = pendingDelete
         if (pending != null) {
             UndoDeleteSnackbar(
-                taskTitle = pending.task.title,
+                title = "Задача удалена",
+                subtitle = pending.task.title,
                 remainingSeconds = pending.remainingSeconds,
                 onUndo = { viewModel.undoDelete() },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 16.dp, vertical = 24.dp)
             )
-        }
-    }
-}
-
-@Composable
-private fun UndoDeleteSnackbar(
-    taskTitle: String,
-    remainingSeconds: Int,
-    onUndo: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.inverseSurface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Text
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Задача удалена",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.inverseOnSurface
-                )
-                Text(
-                    text = taskTitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.7f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            // Undo button
-            TextButton(onClick = onUndo) {
-                Text(
-                    text = "Отмена",
-                    color = MaterialTheme.colorScheme.inversePrimary,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            // Timer with circular progress
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(40.dp)
-            ) {
-                CircularProgressIndicator(
-                    progress = { remainingSeconds / PendingDelete.UNDO_TIMEOUT_SECONDS.toFloat() },
-                    modifier = Modifier.size(32.dp),
-                    color = MaterialTheme.colorScheme.inversePrimary,
-                    trackColor = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.2f),
-                    strokeWidth = 3.dp
-                )
-                Text(
-                    text = "$remainingSeconds",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.inverseOnSurface
-                )
-            }
         }
     }
 }

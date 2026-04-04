@@ -3,6 +3,7 @@ package com.pimenov.crm.ui.notes
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,7 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pimenov.uikit.UiCoreString
+import com.pimenov.uikit.UndoDeleteSnackbar
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -49,23 +50,12 @@ fun NotesListScreen(
 ) {
     val notes by viewModel.notes.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val pendingDelete by viewModel.pendingDelete.collectAsState()
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNewNote,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(Icons.Rounded.Add, contentDescription = stringResource(UiCoreString.notes_new))
-            }
-        }
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 20.dp)
         ) {
             Spacer(Modifier.height(16.dp))
@@ -116,12 +106,39 @@ fun NotesListScreen(
                             preview = note.content.take(120),
                             date = formatDate(note.updatedAt),
                             onClick = { onNoteClick(note.id) },
-                            onDelete = { viewModel.deleteNote(note.id) }
+                            onDelete = { viewModel.requestDelete(note) }
                         )
                     }
                     item { Spacer(Modifier.height(80.dp)) }
                 }
             }
+        }
+
+        // FAB
+        FloatingActionButton(
+            onClick = onNewNote,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp)
+        ) {
+            Icon(Icons.Rounded.Add, contentDescription = stringResource(UiCoreString.notes_new))
+        }
+
+        // Undo snackbar
+        val pending = pendingDelete
+        if (pending != null) {
+            UndoDeleteSnackbar(
+                title = "Заметка удалена",
+                subtitle = pending.note.title.ifBlank { "Без названия" },
+                remainingSeconds = pending.remainingSeconds,
+                onUndo = { viewModel.undoDelete() },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
+            )
         }
     }
 }
