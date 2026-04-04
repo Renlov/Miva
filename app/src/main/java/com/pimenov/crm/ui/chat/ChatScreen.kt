@@ -59,7 +59,7 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.lastIndex)
+            listState.animateScrollToItem(0)
         }
     }
 
@@ -109,12 +109,9 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                reverseLayout = true,
+                verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Bottom)
             ) {
-                item { Spacer(Modifier.height(8.dp)) }
-                items(messages, key = { it.id }) { msg ->
-                    ChatBubble(message = msg)
-                }
                 if (state.isLoading) {
                     item {
                         Row(
@@ -135,7 +132,9 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
                         }
                     }
                 }
-                item { Spacer(Modifier.height(8.dp)) }
+                items(messages.reversed(), key = { it.id }) { msg ->
+                    ChatBubble(message = msg)
+                }
             }
 
             // Input

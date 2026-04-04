@@ -84,23 +84,21 @@ class IntentParser {
             lower.contains("послезавтра") -> {
                 cal.add(Calendar.DAY_OF_YEAR, 2)
             }
-            lower.contains("через час") -> {
-                cal.add(Calendar.HOUR_OF_DAY, 1)
-                return cal.timeInMillis
-            }
             lower.contains("через полчаса") || lower.contains("через 30 минут") -> {
                 cal.add(Calendar.MINUTE, 30)
                 return cal.timeInMillis
             }
             THROUGH_MINUTES_PATTERN.find(lower) != null -> {
-                val mins = THROUGH_MINUTES_PATTERN.find(lower)!!.groupValues[1].toIntOrNull()
+                val raw = THROUGH_MINUTES_PATTERN.find(lower)!!.groupValues[1]
+                val mins = parseNumber(raw)
                 if (mins != null) {
                     cal.add(Calendar.MINUTE, mins)
                     return cal.timeInMillis
                 }
             }
             THROUGH_HOURS_PATTERN.find(lower) != null -> {
-                val hours = THROUGH_HOURS_PATTERN.find(lower)!!.groupValues[1].toIntOrNull()
+                val raw = THROUGH_HOURS_PATTERN.find(lower)!!.groupValues[1]
+                val hours = parseNumber(raw)
                 if (hours != null) {
                     cal.add(Calendar.HOUR_OF_DAY, hours)
                     return cal.timeInMillis
@@ -175,20 +173,36 @@ class IntentParser {
             "в\\s+(\\d{1,2}):(\\d{2})"
         )
 
+        private val WORD_OR_DIGIT = "(?:\\d+|один|одну|одного|два|две|двух|три|трёх|трех|четыре|четырёх|четырех|пять|шесть|семь|восемь|девять|десять|пол)"
+
         private val THROUGH_MINUTES_PATTERN = Regex(
-            "через\\s+(\\d+)\\s*минут"
+            "через\\s+($WORD_OR_DIGIT)\\s*минут"
         )
 
         private val THROUGH_HOURS_PATTERN = Regex(
-            "через\\s+(\\d+)\\s*час"
+            "через\\s+($WORD_OR_DIGIT)\\s*час"
         )
+
+        private val WORD_NUMBER_MAP = mapOf(
+            "один" to 1, "одну" to 1, "одного" to 1,
+            "два" to 2, "две" to 2, "двух" to 2,
+            "три" to 3, "трёх" to 3, "трех" to 3,
+            "четыре" to 4, "четырёх" to 4, "четырех" to 4,
+            "пять" to 5, "шесть" to 6, "семь" to 7,
+            "восемь" to 8, "девять" to 9, "десять" to 10,
+            "пол" to 0 // handled separately for "полчаса"
+        )
+
+        private fun parseNumber(raw: String): Int? {
+            return raw.toIntOrNull() ?: WORD_NUMBER_MAP[raw.lowercase()]
+        }
 
         private val TIME_PATTERNS = listOf(
             Regex("послезавтра\\s*(?:в\\s+\\d{1,2}:\\d{2})?"),
             Regex("завтра\\s*(?:в\\s+\\d{1,2}:\\d{2})?"),
             Regex("сегодня\\s*(?:в\\s+\\d{1,2}:\\d{2})?"),
             Regex("в\\s+(?:понедельник|вторник|среду|четверг|пятницу|субботу|воскресенье)\\s*(?:в\\s+\\d{1,2}:\\d{2})?"),
-            Regex("через\\s+\\d+\\s*(?:минут|час)\\w*"),
+            Regex("через\\s+$WORD_OR_DIGIT\\s*(?:минут|час)\\w*"),
             Regex("через\\s+полчаса"),
             Regex("через\\s+час"),
             Regex("в\\s+\\d{1,2}:\\d{2}")
