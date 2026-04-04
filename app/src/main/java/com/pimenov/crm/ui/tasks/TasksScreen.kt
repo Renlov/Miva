@@ -37,9 +37,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.pimenov.uikit.UiCoreString
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -58,7 +60,7 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = "Задачи",
+                text = stringResource(UiCoreString.tasks_title),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -74,7 +76,7 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
                     value = newTaskText,
                     onValueChange = { newTaskText = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Новая задача...") },
+                    placeholder = { Text(stringResource(UiCoreString.tasks_new_hint)) },
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -92,7 +94,7 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
                 ) {
                     Icon(
                         Icons.Rounded.Add,
-                        contentDescription = "Добавить",
+                        contentDescription = stringResource(UiCoreString.tasks_add),
                         tint = if (newTaskText.isNotBlank()) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -110,9 +112,9 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
                         label = {
                             Text(
                                 when (f) {
-                                    TaskFilter.ALL -> "Все"
-                                    TaskFilter.ACTIVE -> "Активные"
-                                    TaskFilter.DONE -> "Готово"
+                                    TaskFilter.ALL -> stringResource(UiCoreString.tasks_filter_all)
+                                    TaskFilter.ACTIVE -> stringResource(UiCoreString.tasks_filter_active)
+                                    TaskFilter.DONE -> stringResource(UiCoreString.tasks_filter_done)
                                 }
                             )
                         },
@@ -167,7 +169,7 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
                             IconButton(onClick = { viewModel.deleteTask(task.id) }) {
                                 Icon(
                                     Icons.Rounded.Delete,
-                                    contentDescription = "Удалить",
+                                    contentDescription = stringResource(UiCoreString.tasks_delete),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }

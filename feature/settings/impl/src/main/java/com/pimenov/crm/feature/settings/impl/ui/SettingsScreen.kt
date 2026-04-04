@@ -42,7 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.pimenov.crm.feature.settings.impl.R
+import com.pimenov.uikit.UiCoreString
 import com.pimenov.crm.feature.settings.impl.data.AppLanguage
 import com.pimenov.crm.feature.settings.impl.data.SettingsState
 import com.pimenov.crm.feature.settings.impl.data.ThemeMode
@@ -90,7 +90,7 @@ private fun SettingsContent(
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = stringResource(R.string.settings_title),
+                text = stringResource(UiCoreString.settings_title),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -98,7 +98,7 @@ private fun SettingsContent(
             Spacer(Modifier.height(24.dp))
 
             // Theme
-            SectionTitle(stringResource(R.string.settings_section_appearance))
+            SectionTitle(stringResource(UiCoreString.settings_section_appearance))
             SettingsCard {
                 ThemeMode.entries.forEach { mode ->
                     Row(
@@ -116,9 +116,9 @@ private fun SettingsContent(
                         )
                         Text(
                             text = when (mode) {
-                                ThemeMode.LIGHT -> stringResource(R.string.settings_theme_light)
-                                ThemeMode.DARK -> stringResource(R.string.settings_theme_dark)
-                                ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_system)
+                                ThemeMode.LIGHT -> stringResource(UiCoreString.settings_theme_light)
+                                ThemeMode.DARK -> stringResource(UiCoreString.settings_theme_dark)
+                                ThemeMode.SYSTEM -> stringResource(UiCoreString.settings_theme_system)
                             },
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
@@ -130,7 +130,7 @@ private fun SettingsContent(
             Spacer(Modifier.height(20.dp))
 
             // Language
-            SectionTitle(stringResource(R.string.settings_section_language))
+            SectionTitle(stringResource(UiCoreString.settings_section_language))
             SettingsCard {
                 AppLanguage.entries.forEach { lang ->
                     Row(
@@ -148,9 +148,9 @@ private fun SettingsContent(
                         )
                         Text(
                             text = when (lang) {
-                                AppLanguage.SYSTEM -> stringResource(R.string.settings_language_system)
-                                AppLanguage.RU -> stringResource(R.string.settings_language_ru)
-                                AppLanguage.EN -> stringResource(R.string.settings_language_en)
+                                AppLanguage.SYSTEM -> stringResource(UiCoreString.settings_language_system)
+                                AppLanguage.RU -> stringResource(UiCoreString.settings_language_ru)
+                                AppLanguage.EN -> stringResource(UiCoreString.settings_language_en)
                             },
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
@@ -162,13 +162,13 @@ private fun SettingsContent(
             Spacer(Modifier.height(20.dp))
 
             // AI Settings
-            SectionTitle(stringResource(R.string.settings_section_ai))
+            SectionTitle(stringResource(UiCoreString.settings_section_ai))
             SettingsCard {
                 OutlinedTextField(
                     value = apiKeyInput,
                     onValueChange = { apiKeyInput = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.settings_ai_api_key_hint)) },
+                    placeholder = { Text(stringResource(UiCoreString.settings_ai_api_key_hint)) },
                     visualTransformation = PasswordVisualTransformation(),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
@@ -182,7 +182,7 @@ private fun SettingsContent(
                     onClick = { onApiKeySave(apiKeyInput.trim()) },
                     enabled = apiKeyInput.isNotBlank()
                 ) {
-                    Text(stringResource(R.string.settings_ai_save_key))
+                    Text(stringResource(UiCoreString.settings_ai_save_key))
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -197,7 +197,7 @@ private fun SettingsContent(
 
                 // Daily limit
                 Text(
-                    text = stringResource(R.string.settings_ai_daily_limit, settings.aiDailyLimit),
+                    text = stringResource(UiCoreString.settings_ai_daily_limit, settings.aiDailyLimit),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -216,21 +216,21 @@ private fun SettingsContent(
             Spacer(Modifier.height(20.dp))
 
             // Notifications
-            SectionTitle(stringResource(R.string.settings_section_notifications))
+            SectionTitle(stringResource(UiCoreString.settings_section_notifications))
             SettingsCard {
                 SwitchRow(
-                    label = stringResource(R.string.settings_notifications_enabled),
+                    label = stringResource(UiCoreString.settings_notifications_enabled),
                     checked = settings.notificationsEnabled,
                     onCheckedChange = onNotificationsToggle
                 )
                 SwitchRow(
-                    label = stringResource(R.string.settings_notifications_task_due),
+                    label = stringResource(UiCoreString.settings_notifications_task_due),
                     checked = settings.notifyOnTaskDue,
                     enabled = settings.notificationsEnabled,
                     onCheckedChange = onNotifyTaskDueToggle
                 )
                 SwitchRow(
-                    label = stringResource(R.string.settings_notifications_ai_reply),
+                    label = stringResource(UiCoreString.settings_notifications_ai_reply),
                     checked = settings.notifyOnAiReply,
                     enabled = settings.notificationsEnabled,
                     onCheckedChange = onNotifyAiReplyToggle
@@ -240,10 +240,10 @@ private fun SettingsContent(
             Spacer(Modifier.height(20.dp))
 
             // About
-            SectionTitle(stringResource(R.string.settings_section_about))
+            SectionTitle(stringResource(UiCoreString.settings_section_about))
             SettingsCard {
                 Text(
-                    text = stringResource(R.string.settings_about_version),
+                    text = stringResource(UiCoreString.settings_about_version),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -271,7 +271,7 @@ private fun AiModelDropdown(selectedModel: String, onModelChange: (String) -> Un
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-            label = { Text(stringResource(R.string.settings_ai_model)) },
+            label = { Text(stringResource(UiCoreString.settings_ai_model)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(

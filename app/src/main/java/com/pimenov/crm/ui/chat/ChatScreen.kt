@@ -44,8 +44,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.pimenov.crm.domain.model.ChatMessage
+import com.pimenov.uikit.UiCoreString
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -76,7 +78,7 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "AI Ассистент",
+                    text = stringResource(UiCoreString.chat_title),
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -88,7 +90,7 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
                 ) {
                     Icon(
                         Icons.Rounded.Add,
-                        contentDescription = "Новый чат",
+                        contentDescription = stringResource(UiCoreString.chat_new),
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
@@ -119,7 +121,7 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "Думаю...",
+                                stringResource(UiCoreString.chat_thinking),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -150,7 +152,7 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
                     value = input,
                     onValueChange = { input = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Напишите сообщение...") },
+                    placeholder = { Text(stringResource(UiCoreString.chat_input_hint)) },
                     shape = RoundedCornerShape(24.dp),
                     maxLines = 4,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -175,7 +177,7 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
                 ) {
                     Icon(
                         Icons.AutoMirrored.Rounded.Send,
-                        contentDescription = "Отправить",
+                        contentDescription = stringResource(UiCoreString.chat_send),
                         tint = if (input.isNotBlank()) MaterialTheme.colorScheme.onPrimary
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
