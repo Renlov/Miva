@@ -27,9 +27,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pimenov.crm.domain.model.Note
+import com.pimenov.uikit.UiCoreString
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,10 +83,20 @@ fun NoteEditorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (noteId == -1L) "Новая заметка" else "Редактирование") },
+                title = {
+                    Text(
+                        stringResource(
+                            if (noteId == -1L) UiCoreString.notes_editor_new_title
+                            else UiCoreString.notes_editor_edit_title
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Назад")
+                        Icon(
+                            Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = stringResource(UiCoreString.notes_editor_back)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -105,7 +117,7 @@ fun NoteEditorScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = {
                     Text(
-                        "Заголовок",
+                        stringResource(UiCoreString.notes_editor_title_hint),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -128,7 +140,7 @@ fun NoteEditorScreen(
                     .weight(1f),
                 placeholder = {
                     Text(
-                        "Начните писать...",
+                        stringResource(UiCoreString.notes_editor_content_hint),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 },

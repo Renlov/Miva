@@ -32,8 +32,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.pimenov.uikit.UiCoreString
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -56,7 +58,7 @@ fun NotesListScreen(
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Icon(Icons.Rounded.Add, contentDescription = "Новая заметка")
+                Icon(Icons.Rounded.Add, contentDescription = stringResource(UiCoreString.notes_new))
             }
         }
     ) { padding ->
@@ -69,7 +71,7 @@ fun NotesListScreen(
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = "Заметки",
+                text = stringResource(UiCoreString.notes_title),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -80,7 +82,7 @@ fun NotesListScreen(
                 value = searchQuery,
                 onValueChange = viewModel::onSearchQueryChanged,
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Поиск...") },
+                placeholder = { Text(stringResource(UiCoreString.notes_search_hint)) },
                 leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
@@ -99,7 +101,7 @@ fun NotesListScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Пока нет заметок",
+                        text = stringResource(UiCoreString.notes_empty),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -110,7 +112,7 @@ fun NotesListScreen(
                 ) {
                     items(notes, key = { it.id }) { note ->
                         NoteCard(
-                            title = note.title.ifBlank { "Без названия" },
+                            title = note.title.ifBlank { stringResource(UiCoreString.notes_untitled) },
                             preview = note.content.take(120),
                             date = formatDate(note.updatedAt),
                             onClick = { onNoteClick(note.id) },
@@ -160,7 +162,7 @@ private fun NoteCard(
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Rounded.Delete,
-                        contentDescription = "Удалить",
+                        contentDescription = stringResource(UiCoreString.notes_delete),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -185,6 +187,6 @@ private fun NoteCard(
 }
 
 private fun formatDate(timestamp: Long): String {
-    val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("ru"))
+    val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
     return sdf.format(Date(timestamp))
 }

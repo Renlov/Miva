@@ -1,13 +1,14 @@
 package com.pimenov.crm.ui.navigation
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -24,6 +25,7 @@ fun BottomNavBar(navController: NavController) {
     ) {
         bottomNavItems.forEach { screen ->
             val selected = currentRoute == screen.route
+            val label = stringResource(screen.labelRes)
             NavigationBarItem(
                 selected = selected,
                 onClick = {
@@ -38,12 +40,12 @@ fun BottomNavBar(navController: NavController) {
                 icon = {
                     Icon(
                         imageVector = screen.icon,
-                        contentDescription = screen.label
+                        contentDescription = label
                     )
                 },
                 label = {
                     Text(
-                        text = screen.label,
+                        text = label,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
                     )

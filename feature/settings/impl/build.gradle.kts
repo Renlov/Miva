@@ -27,6 +27,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":uikit"))
     implementation(project(":feature:settings:api"))
 
     implementation(platform(libs.androidx.compose.bom))
