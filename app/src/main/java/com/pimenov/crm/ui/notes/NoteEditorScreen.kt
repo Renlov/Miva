@@ -36,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -96,13 +97,31 @@ fun NoteEditorScreen(
         } else {
             loaded = true
         }
-        // Initial snapshot
         pushSnapshot(title, content)
     }
 
-    // Track changes for undo history (debounced by character groups)
+    // Snapshot on word boundaries: space/newline/punctuation triggers immediate save,
+    // otherwise debounce 500ms so each undo step ≈ one word
     LaunchedEffect(title, content) {
-        if (loaded && !isRestoringSnapshot) {
+        if (!loaded || isRestoringSnapshot) return@LaunchedEffect
+
+        val prev = if (historyIndex >= 0 && historyIndex < history.size) history[historyIndex] else null
+        val titleChanged = prev == null || prev.title != title
+        val contentChanged = prev == null || prev.content != content
+
+        val changedText = when {
+            contentChanged -> content
+            titleChanged -> title
+            else -> return@LaunchedEffect
+        }
+
+        // If last char is a word boundary, snapshot immediately
+        val lastChar = changedText.lastOrNull()
+        if (lastChar != null && (lastChar == ' ' || lastChar == '\n' || lastChar in ".,;:!?-—()")) {
+            pushSnapshot(title, content)
+        } else {
+            // Debounce — snapshot after 500ms pause
+            delay(500)
             pushSnapshot(title, content)
         }
     }
