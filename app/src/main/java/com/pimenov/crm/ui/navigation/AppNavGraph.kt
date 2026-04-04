@@ -7,14 +7,17 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.pimenov.crm.feature.settings.api.SettingsFeatureApi
 import com.pimenov.crm.ui.chat.ChatScreen
 import com.pimenov.crm.ui.notes.NoteEditorScreen
 import com.pimenov.crm.ui.notes.NotesListScreen
-import com.pimenov.crm.ui.settings.SettingsScreen
 import com.pimenov.crm.ui.tasks.TasksScreen
+import org.koin.compose.koinInject
 
 @Composable
 fun AppNavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
+    val settingsFeature: SettingsFeatureApi = koinInject()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Notes.route,
@@ -50,8 +53,6 @@ fun AppNavGraph(navController: NavHostController, modifier: Modifier = Modifier)
             TasksScreen()
         }
 
-        composable(Screen.Settings.route) {
-            SettingsScreen()
-        }
+        settingsFeature.registerGraph(this, navController)
     }
 }

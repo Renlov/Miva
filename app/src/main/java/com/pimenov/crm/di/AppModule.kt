@@ -14,7 +14,6 @@ import com.pimenov.crm.domain.repository.SettingsRepository
 import com.pimenov.crm.domain.repository.TaskRepository
 import com.pimenov.crm.ui.chat.ChatViewModel
 import com.pimenov.crm.ui.notes.NotesViewModel
-import com.pimenov.crm.ui.settings.SettingsViewModel
 import com.pimenov.crm.ui.tasks.TasksViewModel
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -69,5 +68,4 @@ val appModule = module {
     viewModel { NotesViewModel(get()) }
     viewModel { ChatViewModel(get()) }
     viewModel { TasksViewModel(get()) }
-    viewModel { SettingsViewModel(get(), get(), get(), get()) }
 }

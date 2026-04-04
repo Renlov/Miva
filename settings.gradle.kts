@@ -25,3 +25,5 @@ dependencyResolutionManagement {
 rootProject.name = "crm"
 include(":app")
 include(":uikit")
+include(":feature:settings:api")
+include(":feature:settings:impl")

@@ -12,20 +12,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import com.pimenov.crm.domain.model.ThemeMode
+import com.pimenov.crm.feature.settings.impl.data.SettingsPreferences
+import com.pimenov.crm.feature.settings.impl.data.ThemeMode
 import com.pimenov.crm.ui.navigation.AppNavGraph
 import com.pimenov.crm.ui.navigation.BottomNavBar
-import com.pimenov.crm.ui.settings.SettingsViewModel
 import com.pimenov.crm.ui.theme.CrmTheme
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val settingsViewModel: SettingsViewModel = koinViewModel()
-            val settings by settingsViewModel.settings.collectAsState()
+            val prefs: SettingsPreferences = koinInject()
+            val settings by prefs.observeSettings().collectAsState(
+                initial = com.pimenov.crm.feature.settings.impl.data.SettingsState()
+            )
             val darkTheme = when (settings.themeMode) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Настройки</string>
+
+    <!-- Appearance -->
+    <string name="settings_section_appearance">Внешний вид</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_theme_system">Системная</string>
+
+    <!-- Language -->
+    <string name="settings_section_language">Язык</string>
+    <string name="settings_language_system">Системный</string>
+    <string name="settings_language_ru">Русский</string>
+    <string name="settings_language_en">English</string>
+
+    <!-- AI -->
+    <string name="settings_section_ai">AI Ассистент</string>
+    <string name="settings_ai_api_key_hint">API ключ OpenAI</string>
+    <string name="settings_ai_save_key">Сохранить ключ</string>
+    <string name="settings_ai_model">Модель AI</string>
+    <string name="settings_ai_daily_limit">Дневной лимит запросов: %d</string>
+
+    <!-- Notifications -->
+    <string name="settings_section_notifications">Уведомления</string>
+    <string name="settings_notifications_enabled">Уведомления включены</string>
+    <string name="settings_notifications_task_due">Напоминания о задачах</string>
+    <string name="settings_notifications_ai_reply">Ответы AI</string>
+
+    <!-- About -->
+    <string name="settings_section_about">О приложении</string>
+    <string name="settings_about_version">CRM Notes v1.0</string>
+</resources>
