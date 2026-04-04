@@ -1,7 +1,6 @@
 package com.pimenov.crm.widget
 
 import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -12,7 +11,6 @@ import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.action.actionRunCallback
-import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
@@ -29,7 +27,6 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
-import androidx.glance.text.TextAlign
 import androidx.glance.text.TextDecoration
 import androidx.glance.text.TextStyle
 import androidx.glance.color.ColorProvider
@@ -100,7 +97,8 @@ private fun TasksWidgetContent(tasks: List<Task>) {
             Box(
                 modifier = GlanceModifier
                     .defaultWeight()
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .clickable(actionRunCallback<OpenTasksAction>()),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -120,27 +118,6 @@ private fun TasksWidgetContent(tasks: List<Task>) {
             }
         }
 
-        Spacer(modifier = GlanceModifier.height(8.dp))
-
-        Box(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .cornerRadius(20.dp)
-                .background(accentColor)
-                .clickable(actionRunCallback<OpenTasksAction>()),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Открыть задачи",
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = onAccentColor,
-                    textAlign = TextAlign.Center
-                )
-            )
-        }
     }
 }
 
@@ -153,16 +130,17 @@ private fun TaskItem(task: Task) {
         modifier = GlanceModifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
-            .clickable(
-                actionRunCallback<ToggleTaskAction>(
-                    actionParametersOf(taskIdKey to task.id)
-                )
-            ),
+            .clickable(actionRunCallback<OpenTasksAction>()),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = if (task.isDone) "✅" else "⬜",
-            style = TextStyle(fontSize = 18.sp, color = checkColor)
+            style = TextStyle(fontSize = 18.sp, color = checkColor),
+            modifier = GlanceModifier.clickable(
+                actionRunCallback<ToggleTaskAction>(
+                    actionParametersOf(taskIdKey to task.id)
+                )
+            )
         )
 
         Spacer(modifier = GlanceModifier.width(8.dp))
