@@ -21,7 +21,7 @@ datastore = "1.1.4"
 coroutinesTest = "1.10.1"
 turbine = "1.2.0"
 composeMaterialIcons = "1.7.8"
-firebaseBom = "33.7.0"
+firebaseBom = "33.14.0"
 googleServices = "4.4.2"
 
 [libraries]
@@ -69,6 +69,7 @@ firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
 
 # Testing
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }

@@ -1,26 +1,21 @@
 package com.pimenov.crm.data.repository
 
+import com.google.firebase.Firebase
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.GenerativeBackend
+import com.google.firebase.ai.type.content
 import com.pimenov.crm.core.database.model.ChatMessage
-import com.pimenov.crm.core.database.usecase.DeleteConversationUseCase
 import com.pimenov.crm.core.database.usecase.GetChatMessagesUseCase
 import com.pimenov.crm.core.database.usecase.InsertChatMessageUseCase
-import com.pimenov.crm.core.database.usecase.NewConversationIdUseCase
-import com.pimenov.crm.core.database.usecase.ObserveChatMessagesUseCase
-import com.pimenov.crm.core.database.usecase.ObserveConversationsUseCase
-import com.pimenov.crm.data.remote.AiApiService
-import com.pimenov.crm.data.remote.dto.ChatRequestBody
-import com.pimenov.crm.data.remote.dto.MessageDto
 import com.pimenov.crm.domain.repository.ChatRepository
-import com.pimenov.crm.domain.repository.SettingsRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 
 class ChatRepositoryImpl(
     private val insertChatMessage: InsertChatMessageUseCase,
-    private val getChatMessages: GetChatMessagesUseCase,
-    private val api: AiApiService,
-    private val settingsRepository: SettingsRepository
+    private val getChatMessages: GetChatMessagesUseCase
 ) : ChatRepository {
+
+    private val model = Firebase.ai(backend = GenerativeBackend.googleAI())
+        .generativeModel("gemini-2.0-flash")
 
     override suspend fun sendMessage(conversationId: Long, userMessage: String): Result<ChatMessage> {
         val userMsg = ChatMessage(
@@ -31,18 +26,16 @@ class ChatRepositoryImpl(
         insertChatMessage(userMsg)
 
         return runCatching {
-            val apiKey = settingsRepository.observeSettings().first().apiKey
-            val history = getChatMessages(conversationId).map {
-                MessageDto(role = it.role, content = it.content)
+            val allMessages = getChatMessages(conversationId)
+            val history = allMessages.dropLast(1).map { msg ->
+                val role = if (msg.role == "user") "user" else "model"
+                content(role = role) { text(msg.content) }
             }
 
-            val response = api.chatCompletion(
-                auth = "Bearer $apiKey",
-                body = ChatRequestBody(messages = history)
-            )
+            val chat = model.startChat(history = history)
+            val response = chat.sendMessage(userMessage)
 
-            val assistantContent = response.choices.firstOrNull()?.message?.content
-                ?: "Нет ответа"
+            val assistantContent = response.text ?: "Нет ответа"
 
             val assistantMsg = ChatMessage(
                 conversationId = conversationId,

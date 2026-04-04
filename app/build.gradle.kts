@@ -62,12 +62,6 @@ dependencies {
     // Koin
     implementation(libs.koin.androidx.compose)
 
-    // Retrofit
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.gson)
-    implementation(libs.okhttp.logging)
-    implementation(libs.gson)
-
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
@@ -77,6 +71,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.ai)
 
     // Testing
     testImplementation(libs.junit)
