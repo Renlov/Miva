@@ -5,5 +5,6 @@ data class Task(
     val title: String = "",
     val isDone: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
-    val reminderAt: Long? = null
+    val reminderAt: Long? = null,
+    val sortOrder: Int = 0
 )

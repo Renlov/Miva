@@ -12,7 +12,20 @@
           "package_name": "com.pimenov.crm"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "114025313035-si0l6c91mm4s0mhcntlc8fjr61j3cqvo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pimenov.crm",
+            "certificate_hash": "117463c1532d6ce681c9479b4d81308967c9bb43"
+          }
+        },
+        {
+          "client_id": "114025313035-sjk8tfor16fj21i0vus0ttmnsresv06c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAvMj8HkPngWngul9Ia2dlmUKnNAPVGUUo"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "114025313035-sjk8tfor16fj21i0vus0ttmnsresv06c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

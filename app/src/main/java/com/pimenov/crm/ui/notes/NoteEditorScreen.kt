@@ -98,7 +98,7 @@ fun NoteEditorScreen(
 ) {
     val context = LocalContext.current
     var title by rememberSaveable { mutableStateOf("") }
-    var existingNote by rememberSaveable { mutableStateOf<Note?>(null) }
+    var existingNote by remember { mutableStateOf<Note?>(null) }
     var loaded by rememberSaveable { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
     var isListening by remember { mutableStateOf(false) }

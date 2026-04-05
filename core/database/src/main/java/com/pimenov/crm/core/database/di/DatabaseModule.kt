@@ -2,6 +2,7 @@ package com.pimenov.crm.core.database.di
 
 import androidx.room.Room
 import com.pimenov.crm.core.database.AppDatabase
+import com.pimenov.crm.core.database.AppDatabase.Companion.MIGRATION_3_4
 import com.pimenov.crm.core.database.repository.ChatMessageRepository
 import com.pimenov.crm.core.database.repository.ChatMessageRepositoryImpl
 import com.pimenov.crm.core.database.repository.NoteRepository
@@ -32,7 +33,11 @@ val databaseModule = module {
     // Database
     single {
         Room.databaseBuilder(androidContext(), AppDatabase::class.java, "crm_database")
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .addMigrations(
+                AppDatabase.MIGRATION_1_2,
+                AppDatabase.MIGRATION_2_3,
+                MIGRATION_3_4
+            )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }

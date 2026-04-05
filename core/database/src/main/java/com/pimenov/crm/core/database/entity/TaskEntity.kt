@@ -10,12 +10,13 @@ data class TaskEntity(
     val title: String = "",
     val isDone: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
-    val reminderAt: Long? = null
+    val reminderAt: Long? = null,
+    val sortOrder: Int = 0
 ) {
-    fun toDomain(): Task = Task(id, title, isDone, createdAt, reminderAt)
+    fun toDomain(): Task = Task(id, title, isDone, createdAt, reminderAt, sortOrder)
 
     companion object {
         fun fromDomain(task: Task): TaskEntity =
-            TaskEntity(task.id, task.title, task.isDone, task.createdAt, task.reminderAt)
+            TaskEntity(task.id, task.title, task.isDone, task.createdAt, task.reminderAt, task.sortOrder)
     }
 }
