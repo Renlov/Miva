@@ -14,6 +14,9 @@ internal class NoteRepositoryImpl(private val dao: NoteDao) : NoteRepository {
     override fun search(query: String): Flow<List<Note>> =
         dao.search(query).map { list -> list.map { it.toDomain() } }
 
+    override suspend fun getAll(): List<Note> =
+        dao.getAll().map { it.toDomain() }
+
     override suspend fun getById(id: Long): Note? =
         dao.getById(id)?.toDomain()
 

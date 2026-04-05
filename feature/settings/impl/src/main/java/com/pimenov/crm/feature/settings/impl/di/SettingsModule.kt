@@ -6,10 +6,16 @@ import com.pimenov.crm.feature.settings.impl.data.SettingsPreferences
 import com.pimenov.crm.feature.settings.impl.ui.SettingsViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val settingsModule = module {
     single { SettingsPreferences(androidContext()) }
     single<SettingsFeatureApi> { SettingsFeatureImpl() }
-    viewModel { SettingsViewModel(get()) }
+    viewModel {
+        SettingsViewModel(
+            prefs = get(),
+            onSyncRequested = get(named("noteSync"))
+        )
+    }
 }

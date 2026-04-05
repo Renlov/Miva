@@ -57,6 +57,13 @@
     <string name="settings_notifications_enabled">Уведомления включены</string>
     <string name="settings_notifications_task_due">Напоминания о задачах</string>
     <string name="settings_notifications_ai_reply">Ответы AI</string>
+    <string name="settings_section_account">Аккаунт</string>
+    <string name="settings_account_signed_as">Вы вошли как %s</string>
+    <string name="settings_account_sign_in">Войти через Google</string>
+    <string name="settings_account_sign_out">Выйти</string>
+    <string name="settings_account_syncing">Синхронизация заметок…</string>
+    <string name="settings_account_sync_done">Заметки синхронизированы</string>
+    <string name="settings_account_sync_error">Ошибка синхронизации: %s</string>
     <string name="settings_section_about">О приложении</string>
     <string name="settings_about_version">CRM Заметки v1.0</string>
 

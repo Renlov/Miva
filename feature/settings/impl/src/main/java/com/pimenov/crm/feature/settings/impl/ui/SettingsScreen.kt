@@ -1,5 +1,6 @@
 package com.pimenov.crm.feature.settings.impl.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,17 +9,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
@@ -34,26 +41,38 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.pimenov.uikit.UiCoreString
 import com.pimenov.crm.feature.settings.impl.data.AppLanguage
 import com.pimenov.crm.feature.settings.impl.data.SettingsState
 import com.pimenov.crm.feature.settings.impl.data.ThemeMode
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel()) {
     val settings by viewModel.settings.collectAsState()
+    val authState by viewModel.authState.collectAsState()
     SettingsContent(
         settings = settings,
+        authState = authState,
+        onSignInWithToken = viewModel::signInWithGoogleIdToken,
+        onSignOut = viewModel::signOut,
+        onSyncNow = viewModel::syncNow,
+        onClearSyncMessage = viewModel::clearSyncMessage,
         onThemeChange = viewModel::setThemeMode,
         onLanguageChange = viewModel::setLanguage,
         onApiKeySave = viewModel::setApiKey,
@@ -68,6 +87,11 @@ fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel()) {
 @Composable
 private fun SettingsContent(
     settings: SettingsState,
+    authState: AuthState,
+    onSignInWithToken: (String) -> Unit,
+    onSignOut: () -> Unit,
+    onSyncNow: () -> Unit,
+    onClearSyncMessage: () -> Unit,
     onThemeChange: (ThemeMode) -> Unit,
     onLanguageChange: (AppLanguage) -> Unit,
     onApiKeySave: (String) -> Unit,
@@ -96,6 +120,20 @@ private fun SettingsContent(
             )
 
             Spacer(Modifier.height(24.dp))
+
+            // Account
+            SectionTitle(stringResource(UiCoreString.settings_section_account))
+            SettingsCard {
+                AccountSection(
+                    authState = authState,
+                    onSignInWithToken = onSignInWithToken,
+                    onSignOut = onSignOut,
+                    onSyncNow = onSyncNow,
+                    onClearSyncMessage = onClearSyncMessage
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
 
             // Theme
             SectionTitle(stringResource(UiCoreString.settings_section_appearance))
@@ -254,6 +292,99 @@ private fun SettingsContent(
     }
 }
 
+@Composable
+private fun AccountSection(
+    authState: AuthState,
+    onSignInWithToken: (String) -> Unit,
+    onSignOut: () -> Unit,
+    onSyncNow: () -> Unit,
+    onClearSyncMessage: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    if (authState.isSignedIn) {
+        Text(
+            text = stringResource(
+                UiCoreString.settings_account_signed_as,
+                authState.email ?: authState.displayName.orEmpty()
+            ),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        if (authState.isSyncing) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    stringResource(UiCoreString.settings_account_syncing),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            val msg = authState.syncMessage
+            if (msg != null) {
+                Text(
+                    text = if (msg == "synced") stringResource(UiCoreString.settings_account_sync_done)
+                    else stringResource(UiCoreString.settings_account_sync_error, msg),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (msg == "synced") MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.error
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = onSyncNow) {
+                    Text(stringResource(UiCoreString.settings_account_sync_done))
+                }
+                OutlinedButton(onClick = onSignOut) {
+                    Text(stringResource(UiCoreString.settings_account_sign_out))
+                }
+            }
+        }
+    } else {
+        Button(
+            onClick = {
+                scope.launch {
+                    try {
+                        val credentialManager = CredentialManager.create(context)
+                        val googleIdOption = GetGoogleIdOption.Builder()
+                            .setFilterByAuthorizedAccounts(false)
+                            .setServerClientId(
+                                context.getString(
+                                    context.resources.getIdentifier(
+                                        "default_web_client_id", "string", context.packageName
+                                    )
+                                )
+                            )
+                            .build()
+                        val request = GetCredentialRequest.Builder()
+                            .addCredentialOption(googleIdOption)
+                            .build()
+                        val result = credentialManager.getCredential(context, request)
+                        val googleIdToken = GoogleIdTokenCredential
+                            .createFrom(result.credential.data)
+                            .idToken
+                        onSignInWithToken(googleIdToken)
+                    } catch (e: Exception) {
+                        Log.e("SettingsScreen", "Google sign-in failed", e)
+                    }
+                }
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Text(stringResource(UiCoreString.settings_account_sign_in))
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AiModelDropdown(selectedModel: String, onModelChange: (String) -> Unit) {
@@ -349,23 +480,5 @@ private fun SettingsCard(content: @Composable () -> Unit) {
         Column(modifier = Modifier.padding(16.dp)) {
             content()
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun SettingsContentPreview() {
-    MaterialTheme {
-        SettingsContent(
-            settings = SettingsState(),
-            onThemeChange = {},
-            onLanguageChange = {},
-            onApiKeySave = {},
-            onAiDailyLimitChange = {},
-            onAiModelChange = {},
-            onNotificationsToggle = {},
-            onNotifyTaskDueToggle = {},
-            onNotifyAiReplyToggle = {}
-        )
     }
 }

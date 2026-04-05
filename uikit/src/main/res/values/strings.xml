@@ -57,6 +57,13 @@
     <string name="settings_notifications_enabled">Notifications enabled</string>
     <string name="settings_notifications_task_due">Task reminders</string>
     <string name="settings_notifications_ai_reply">AI replies</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_account_signed_as">Signed in as %s</string>
+    <string name="settings_account_sign_in">Sign in with Google</string>
+    <string name="settings_account_sign_out">Sign out</string>
+    <string name="settings_account_syncing">Syncing notes…</string>
+    <string name="settings_account_sync_done">Notes synced</string>
+    <string name="settings_account_sync_error">Sync error: %s</string>
     <string name="settings_section_about">About</string>
     <string name="settings_about_version">CRM Notes v1.0</string>
 
