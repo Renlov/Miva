@@ -1,5 +1,15 @@
 package com.pimenov.crm.ui.notes
 
+import android.Manifest
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +31,8 @@ import androidx.compose.material.icons.rounded.FormatListBulleted
 import androidx.compose.material.icons.rounded.FormatListNumbered
 import androidx.compose.material.icons.rounded.FormatStrikethrough
 import androidx.compose.material.icons.rounded.FormatUnderlined
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -42,8 +54,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -64,12 +78,48 @@ fun NoteEditorScreen(
     onBack: () -> Unit,
     viewModel: NotesViewModel = koinViewModel()
 ) {
+    val context = LocalContext.current
     var title by rememberSaveable { mutableStateOf("") }
     var existingNote by rememberSaveable { mutableStateOf<Note?>(null) }
     var loaded by rememberSaveable { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
+    var isListening by remember { mutableStateOf(false) }
 
     val richTextState = rememberRichTextState()
+
+    val speechHelper = remember {
+        SpeechRecognizerHelper(
+            context = context,
+            onResult = { text ->
+                val current = richTextState.toHtml()
+                val separator = if (current.isBlank()) "" else " "
+                richTextState.setHtml(current + separator + text)
+            },
+            onPartialResult = { },
+            onListeningStateChanged = { listening -> isListening = listening },
+            onError = { message ->
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            speechHelper.startListening()
+        } else {
+            Toast.makeText(
+                context,
+                context.getString(UiCoreString.speech_permission_denied),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { speechHelper.destroy() }
+    }
 
     LaunchedEffect(noteId) {
         if (noteId != -1L && !loaded) {
@@ -140,6 +190,14 @@ fun NoteEditorScreen(
         bottomBar = {
             EditorToolbar(
                 richTextState = richTextState,
+                isListening = isListening,
+                onMicClick = {
+                    if (isListening) {
+                        speechHelper.stop()
+                    } else {
+                        micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    }
+                },
                 onSave = {
                     performSave()
                     onBack()
@@ -201,6 +259,8 @@ fun NoteEditorScreen(
 @Composable
 private fun EditorToolbar(
     richTextState: com.mohamedrejeb.richeditor.model.RichTextState,
+    isListening: Boolean,
+    onMicClick: () -> Unit,
     onSave: () -> Unit
 ) {
     val currentSpanStyle = richTextState.currentSpanStyle
@@ -273,6 +333,11 @@ private fun EditorToolbar(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            MicButton(
+                isListening = isListening,
+                onClick = onMicClick
+            )
+
             IconButton(
                 onClick = onSave,
                 modifier = Modifier.size(40.dp)
@@ -285,6 +350,42 @@ private fun EditorToolbar(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun MicButton(
+    isListening: Boolean,
+    onClick: () -> Unit
+) {
+    val tint by animateColorAsState(
+        targetValue = if (isListening) Color(0xFFE53935) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        label = "micTint"
+    )
+
+    val infiniteTransition = rememberInfiniteTransition(label = "micPulse")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (isListening) 1.2f else 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(600),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "micScale"
+    )
+
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .size(40.dp)
+            .then(if (isListening) Modifier.scale(scale) else Modifier)
+    ) {
+        Icon(
+            imageVector = if (isListening) Icons.Rounded.Stop else Icons.Rounded.Mic,
+            contentDescription = if (isListening) "Stop recording" else "Voice input",
+            tint = tint,
+            modifier = Modifier.size(22.dp)
+        )
     }
 }
 

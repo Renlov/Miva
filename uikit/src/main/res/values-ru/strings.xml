@@ -20,6 +20,7 @@
     <string name="notes_editor_title_hint">Заголовок</string>
     <string name="notes_editor_content_hint">Начните писать…</string>
     <string name="notes_editor_back">Назад</string>
+    <string name="speech_permission_denied">Для голосового ввода нужно разрешение на микрофон</string>
 
     <!-- Chat -->
     <string name="chat_title">AI Ассистент</string>

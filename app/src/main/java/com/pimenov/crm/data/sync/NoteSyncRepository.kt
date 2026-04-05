@@ -1,10 +1,14 @@
 package com.pimenov.crm.data.sync
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pimenov.crm.core.database.model.Note
 import com.pimenov.crm.core.database.repository.NoteRepository
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.resume
 
 class NoteSyncRepository(
     private val noteRepository: NoteRepository,
@@ -15,10 +19,21 @@ class NoteSyncRepository(
         firestore.collection("users").document(uid).collection("notes")
 
     suspend fun sync() {
-        val uid = auth.currentUser?.uid ?: return
+        // Wait briefly for auth state if currentUser is null (race after sign-in)
+        var uid = auth.currentUser?.uid
+        if (uid == null) {
+            Log.d("NoteSync", "currentUser is null, waiting for auth state...")
+            uid = awaitAuthUid()
+        }
+        if (uid == null) {
+            throw IllegalStateException("User not authenticated")
+        }
+        Log.d("NoteSync", "Starting sync for uid=$uid")
 
         val localNotes = noteRepository.getAll()
+        Log.d("NoteSync", "Local notes: ${localNotes.size}")
         val remoteNotes = fetchRemoteNotes(uid)
+        Log.d("NoteSync", "Remote notes: ${remoteNotes.size}")
 
         val remoteById = remoteNotes.associateBy { it.id }
         val localById = localNotes.associateBy { it.id }
@@ -71,5 +86,20 @@ class NoteSyncRepository(
             "updatedAt" to note.updatedAt
         )
         notesCollection(uid).document(note.id.toString()).set(data).await()
+    }
+
+    private suspend fun awaitAuthUid(): String? {
+        return withTimeoutOrNull(3000L) {
+            suspendCancellableCoroutine { cont ->
+                val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+                    val uid = firebaseAuth.currentUser?.uid
+                    if (uid != null) {
+                        cont.resume(uid)
+                    }
+                }
+                cont.invokeOnCancellation { auth.removeAuthStateListener(listener) }
+                auth.addAuthStateListener(listener)
+            }
+        }
     }
 }

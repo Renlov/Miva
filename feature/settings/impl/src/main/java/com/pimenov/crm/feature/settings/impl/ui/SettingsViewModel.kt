@@ -50,7 +50,12 @@ class SettingsViewModel(
             _authState.value = _authState.value.copy(isSyncing = true, syncMessage = null)
             try {
                 val credential = GoogleAuthProvider.getCredential(idToken, null)
-                auth.signInWithCredential(credential).await()
+                val result = auth.signInWithCredential(credential).await()
+                // Wait for auth state to be fully ready
+                val user = result.user ?: auth.currentUser
+                if (user == null) {
+                    throw IllegalStateException("Sign-in succeeded but user is null")
+                }
                 _authState.value = buildAuthState().copy(isSyncing = true)
                 onSyncRequested()
                 _authState.value = _authState.value.copy(isSyncing = false, syncMessage = "synced")

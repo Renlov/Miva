@@ -20,6 +20,7 @@
     <string name="notes_editor_title_hint">Title</string>
     <string name="notes_editor_content_hint">Start writing…</string>
     <string name="notes_editor_back">Back</string>
+    <string name="speech_permission_denied">Microphone permission is required for voice input</string>
 
     <!-- Chat -->
     <string name="chat_title">AI Assistant</string>
