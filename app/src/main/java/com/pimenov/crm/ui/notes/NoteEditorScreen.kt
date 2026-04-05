@@ -1,8 +1,10 @@
 package com.pimenov.crm.ui.notes
 
 import android.Manifest
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
@@ -11,6 +13,9 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,15 +27,22 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FormatBold
 import androidx.compose.material.icons.rounded.FormatItalic
 import androidx.compose.material.icons.rounded.FormatListBulleted
 import androidx.compose.material.icons.rounded.FormatListNumbered
 import androidx.compose.material.icons.rounded.FormatStrikethrough
 import androidx.compose.material.icons.rounded.FormatUnderlined
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,15 +60,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -64,12 +79,15 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
 import com.pimenov.crm.core.database.model.Note
 import com.pimenov.uikit.UiCoreString
 import org.koin.androidx.compose.koinViewModel
+import java.io.File
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +102,7 @@ fun NoteEditorScreen(
     var loaded by rememberSaveable { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
     var isListening by remember { mutableStateOf(false) }
+    val images = remember { mutableStateListOf<String>() }
 
     val richTextState = rememberRichTextState()
 
@@ -117,6 +136,17 @@ fun NoteEditorScreen(
         }
     }
 
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(5)
+    ) { uris ->
+        for (uri in uris) {
+            val savedPath = copyImageToInternal(context, uri)
+            if (savedPath != null) {
+                images.add(savedPath)
+            }
+        }
+    }
+
     DisposableEffect(Unit) {
         onDispose { speechHelper.destroy() }
     }
@@ -128,6 +158,8 @@ fun NoteEditorScreen(
                 title = note.title
                 richTextState.setHtml(note.content)
                 existingNote = note
+                images.clear()
+                images.addAll(note.images)
             }
             loaded = true
         } else {
@@ -138,13 +170,19 @@ fun NoteEditorScreen(
     fun performSave() {
         if (saved) return
         val htmlContent = richTextState.toHtml()
-        if (title.isNotBlank() || htmlContent.isNotBlank()) {
+        if (title.isNotBlank() || htmlContent.isNotBlank() || images.isNotEmpty()) {
             val now = System.currentTimeMillis()
             val note = existingNote?.copy(
                 title = title,
                 content = htmlContent,
+                images = images.toList(),
                 updatedAt = now
-            ) ?: Note(title = title, content = htmlContent, updatedAt = now)
+            ) ?: Note(
+                title = title,
+                content = htmlContent,
+                images = images.toList(),
+                updatedAt = now
+            )
             viewModel.saveNote(note)
             saved = true
         }
@@ -198,6 +236,11 @@ fun NoteEditorScreen(
                         micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                     }
                 },
+                onImageClick = {
+                    imagePickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                },
                 onSave = {
                     performSave()
                     onBack()
@@ -232,6 +275,23 @@ fun NoteEditorScreen(
 
             Spacer(Modifier.height(4.dp))
 
+            if (images.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(images.toList()) { path ->
+                        ImageThumbnail(
+                            path = path,
+                            onRemove = { images.remove(path) }
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+
             RichTextEditor(
                 state = richTextState,
                 modifier = Modifier
@@ -257,10 +317,61 @@ fun NoteEditorScreen(
 }
 
 @Composable
+private fun ImageThumbnail(
+    path: String,
+    onRemove: () -> Unit
+) {
+    Box(modifier = Modifier.size(80.dp)) {
+        AsyncImage(
+            model = path,
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop
+        )
+        IconButton(
+            onClick = onRemove,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(24.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                    shape = CircleShape
+                )
+        ) {
+            Icon(
+                Icons.Rounded.Close,
+                contentDescription = "Remove",
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+private fun copyImageToInternal(context: android.content.Context, uri: Uri): String? {
+    return try {
+        val dir = File(context.filesDir, "note_images")
+        if (!dir.exists()) dir.mkdirs()
+        val file = File(dir, "${UUID.randomUUID()}.jpg")
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            file.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        file.absolutePath
+    } catch (e: Exception) {
+        null
+    }
+}
+
+@Composable
 private fun EditorToolbar(
     richTextState: com.mohamedrejeb.richeditor.model.RichTextState,
     isListening: Boolean,
     onMicClick: () -> Unit,
+    onImageClick: () -> Unit,
     onSave: () -> Unit
 ) {
     val currentSpanStyle = richTextState.currentSpanStyle
@@ -288,7 +399,7 @@ private fun EditorToolbar(
         ) {
             FormatButton(
                 icon = Icons.Rounded.FormatBold,
-                contentDescription = "Жирный",
+                contentDescription = "Bold",
                 isActive = isBold,
                 onClick = {
                     richTextState.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold))
@@ -296,7 +407,7 @@ private fun EditorToolbar(
             )
             FormatButton(
                 icon = Icons.Rounded.FormatItalic,
-                contentDescription = "Курсив",
+                contentDescription = "Italic",
                 isActive = isItalic,
                 onClick = {
                     richTextState.toggleSpanStyle(SpanStyle(fontStyle = FontStyle.Italic))
@@ -304,7 +415,7 @@ private fun EditorToolbar(
             )
             FormatButton(
                 icon = Icons.Rounded.FormatUnderlined,
-                contentDescription = "Подчёркнутый",
+                contentDescription = "Underline",
                 isActive = isUnderline,
                 onClick = {
                     richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.Underline))
@@ -312,7 +423,7 @@ private fun EditorToolbar(
             )
             FormatButton(
                 icon = Icons.Rounded.FormatStrikethrough,
-                contentDescription = "Зачёркнутый",
+                contentDescription = "Strikethrough",
                 isActive = isStrikethrough,
                 onClick = {
                     richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.LineThrough))
@@ -320,18 +431,30 @@ private fun EditorToolbar(
             )
             FormatButton(
                 icon = Icons.Rounded.FormatListBulleted,
-                contentDescription = "Маркированный список",
+                contentDescription = "Bullet list",
                 isActive = isUnorderedList,
                 onClick = { richTextState.toggleUnorderedList() }
             )
             FormatButton(
                 icon = Icons.Rounded.FormatListNumbered,
-                contentDescription = "Нумерованный список",
+                contentDescription = "Numbered list",
                 isActive = isOrderedList,
                 onClick = { richTextState.toggleOrderedList() }
             )
 
             Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = onImageClick,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    Icons.Rounded.Image,
+                    contentDescription = "Attach image",
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.size(22.dp)
+                )
+            }
 
             MicButton(
                 isListening = isListening,
@@ -344,7 +467,7 @@ private fun EditorToolbar(
             ) {
                 Icon(
                     Icons.Rounded.Check,
-                    contentDescription = "Сохранить",
+                    contentDescription = "Save",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(22.dp)
                 )

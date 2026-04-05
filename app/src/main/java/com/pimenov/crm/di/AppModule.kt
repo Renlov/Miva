@@ -45,7 +45,7 @@ val appModule = module {
     single<ChatRepository> { ChatRepositoryImpl(get(), get(), get(), get(), get(), get(), get()) }
 
     // ViewModels
-    viewModel { NotesViewModel(get(), get(), get(), get(), get()) }
+    viewModel { NotesViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { ChatViewModel(get(), get(), get(), get(), get()) }
     viewModel { TasksViewModel(get(), get(), get(), get()) }
 }

@@ -8,6 +8,7 @@ import com.pimenov.crm.core.database.usecase.GetNoteByIdUseCase
 import com.pimenov.crm.core.database.usecase.ObserveNotesUseCase
 import com.pimenov.crm.core.database.usecase.SaveNoteUseCase
 import com.pimenov.crm.core.database.usecase.SearchNotesUseCase
+import com.pimenov.crm.core.database.usecase.ToggleNotePinUseCase
 import com.pimenov.uikit.UNDO_TIMEOUT_SECONDS
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -29,7 +30,8 @@ class NotesViewModel(
     private val searchNotes: SearchNotesUseCase,
     private val getNoteById: GetNoteByIdUseCase,
     private val saveNote: SaveNoteUseCase,
-    private val deleteNote: DeleteNoteUseCase
+    private val deleteNote: DeleteNoteUseCase,
+    private val toggleNotePin: ToggleNotePinUseCase
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -88,6 +90,10 @@ class NotesViewModel(
 
     fun saveNote(note: Note) {
         viewModelScope.launch { saveNote.invoke(note) }
+    }
+
+    fun togglePin(noteId: Long) {
+        viewModelScope.launch { toggleNotePin(noteId) }
     }
 
     private fun finalizePendingDelete() {

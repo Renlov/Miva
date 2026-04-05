@@ -10,12 +10,29 @@ data class NoteEntity(
     val title: String = "",
     val content: String = "",
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    val isPinned: Boolean = false,
+    val images: String = ""
 ) {
-    fun toDomain(): Note = Note(id, title, content, createdAt, updatedAt)
+    fun toDomain(): Note = Note(
+        id = id,
+        title = title,
+        content = content,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        isPinned = isPinned,
+        images = if (images.isBlank()) emptyList() else images.split(",")
+    )
 
     companion object {
-        fun fromDomain(note: Note): NoteEntity =
-            NoteEntity(note.id, note.title, note.content, note.createdAt, note.updatedAt)
+        fun fromDomain(note: Note): NoteEntity = NoteEntity(
+            id = note.id,
+            title = note.title,
+            content = note.content,
+            createdAt = note.createdAt,
+            updatedAt = note.updatedAt,
+            isPinned = note.isPinned,
+            images = note.images.joinToString(",")
+        )
     }
 }

@@ -72,6 +72,9 @@ dependencies {
     // Rich Text Editor
     implementation(libs.richeditor.compose)
 
+    // Coil (Image loading)
+    implementation(libs.coil.compose)
+
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 

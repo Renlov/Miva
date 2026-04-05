@@ -73,7 +73,10 @@ class NoteSyncRepository(
             val content = doc.getString("content").orEmpty()
             val createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
             val updatedAt = doc.getLong("updatedAt") ?: System.currentTimeMillis()
-            Note(id = id, title = title, content = content, createdAt = createdAt, updatedAt = updatedAt)
+            val isPinned = doc.getBoolean("isPinned") ?: false
+            val imagesStr = doc.getString("images").orEmpty()
+            val imagesList = if (imagesStr.isBlank()) emptyList() else imagesStr.split(",")
+            Note(id = id, title = title, content = content, createdAt = createdAt, updatedAt = updatedAt, isPinned = isPinned, images = imagesList)
         }
     }
 
@@ -83,7 +86,9 @@ class NoteSyncRepository(
             "title" to note.title,
             "content" to note.content,
             "createdAt" to note.createdAt,
-            "updatedAt" to note.updatedAt
+            "updatedAt" to note.updatedAt,
+            "isPinned" to note.isPinned,
+            "images" to note.images.joinToString(",")
         )
         notesCollection(uid).document(note.id.toString()).set(data).await()
     }

@@ -22,6 +22,7 @@ import com.pimenov.crm.core.database.usecase.ObserveTasksUseCase
 import com.pimenov.crm.core.database.usecase.SaveNoteUseCase
 import com.pimenov.crm.core.database.usecase.SaveTaskUseCase
 import com.pimenov.crm.core.database.usecase.SearchNotesUseCase
+import com.pimenov.crm.core.database.usecase.ToggleNotePinUseCase
 import com.pimenov.crm.core.database.usecase.ToggleTaskDoneUseCase
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -31,7 +32,7 @@ val databaseModule = module {
     // Database
     single {
         Room.databaseBuilder(androidContext(), AppDatabase::class.java, "crm_database")
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
@@ -58,6 +59,7 @@ val databaseModule = module {
     factory { GetNoteByIdUseCase(get()) }
     factory { SaveNoteUseCase(get()) }
     factory { DeleteNoteUseCase(get()) }
+    factory { ToggleNotePinUseCase(get()) }
 
     // Chat use cases
     factory { ObserveChatMessagesUseCase(get()) }

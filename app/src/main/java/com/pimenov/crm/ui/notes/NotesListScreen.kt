@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -32,13 +36,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.pimenov.uikit.UiCoreString
 import com.pimenov.uikit.UndoDeleteSnackbar
 import org.koin.androidx.compose.koinViewModel
@@ -112,8 +120,11 @@ fun NotesListScreen(
                             preview = stripHtml(note.content).take(120),
                             date = formatDate(note.updatedAt),
                             searchQuery = searchQuery,
+                            isPinned = note.isPinned,
+                            images = note.images,
                             onClick = { onNoteClick(note.id) },
-                            onDelete = { viewModel.requestDelete(note) }
+                            onDelete = { viewModel.requestDelete(note) },
+                            onTogglePin = { viewModel.togglePin(note.id) }
                         )
                     }
                     item { Spacer(Modifier.height(80.dp)) }
@@ -156,8 +167,11 @@ private fun NoteCard(
     preview: String,
     date: String,
     searchQuery: String,
+    isPinned: Boolean,
+    images: List<String>,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onTogglePin: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -184,7 +198,18 @@ private fun NoteCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                IconButton(onClick = onDelete) {
+                IconButton(onClick = onTogglePin, modifier = Modifier.size(36.dp)) {
+                    Icon(
+                        Icons.Rounded.PushPin,
+                        contentDescription = if (isPinned) "Открепить" else "Закрепить",
+                        tint = if (isPinned) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        modifier = Modifier
+                            .size(18.dp)
+                            .then(if (!isPinned) Modifier.rotate(45f) else Modifier)
+                    )
+                }
+                IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
                     Icon(
                         Icons.Rounded.Delete,
                         contentDescription = stringResource(UiCoreString.notes_delete),
@@ -200,6 +225,21 @@ private fun NoteCard(
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+            if (images.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(images) { path ->
+                        AsyncImage(
+                            model = path,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
             }
             Spacer(Modifier.height(8.dp))
             Text(
