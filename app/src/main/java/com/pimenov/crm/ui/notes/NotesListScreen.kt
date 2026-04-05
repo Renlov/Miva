@@ -232,7 +232,9 @@ private fun highlightMatches(text: String, query: String): AnnotatedString {
 }
 
 private fun stripHtml(html: String): String =
-    html.replace(Regex("<[^>]*>"), "").replace("&nbsp;", " ").trim()
+    android.text.Html.fromHtml(html, android.text.Html.FROM_HTML_MODE_COMPACT)
+        .toString()
+        .trim()
 
 private fun formatDate(timestamp: Long): String {
     val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
