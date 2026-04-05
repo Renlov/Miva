@@ -10,13 +10,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -30,7 +34,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,7 +60,27 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
     val tasks by viewModel.tasks.collectAsState()
     val filter by viewModel.filter.collectAsState()
     val pendingDelete by viewModel.pendingDelete.collectAsState()
-    var showAddDialog by rememberSaveable { mutableStateOf(false) }
+    var isAdding by rememberSaveable { mutableStateOf(false) }
+    var newTaskText by rememberSaveable { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(isAdding) {
+        if (isAdding) focusRequester.requestFocus()
+    }
+
+    fun confirmAdd() {
+        val trimmed = newTaskText.trim()
+        if (trimmed.isNotBlank()) {
+            viewModel.addTask(trimmed)
+        }
+        newTaskText = ""
+        isAdding = false
+    }
+
+    fun cancelAdd() {
+        newTaskText = ""
+        isAdding = false
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -99,7 +123,7 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
 
             Spacer(Modifier.height(12.dp))
 
-            if (tasks.isEmpty()) {
+            if (tasks.isEmpty() && !isAdding) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
@@ -114,6 +138,76 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
             }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Inline new task input at the top of the list
+                if (isAdding) {
+                    item(key = "new_task_input") {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateContentSize(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = false,
+                                    onCheckedChange = null,
+                                    enabled = false,
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                                OutlinedTextField(
+                                    value = newTaskText,
+                                    onValueChange = { newTaskText = it },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .focusRequester(focusRequester),
+                                    placeholder = { Text(stringResource(UiCoreString.tasks_new_hint)) },
+                                    singleLine = true,
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                    keyboardActions = KeyboardActions(onDone = { confirmAdd() }),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                IconButton(
+                                    onClick = { confirmAdd() },
+                                    enabled = newTaskText.isNotBlank(),
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.Check,
+                                        contentDescription = stringResource(UiCoreString.tasks_add),
+                                        tint = if (newTaskText.isNotBlank()) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { cancelAdd() },
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.Close,
+                                        contentDescription = stringResource(UiCoreString.action_cancel),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 items(tasks, key = { it.id }) { task ->
                     Card(
                         modifier = Modifier
@@ -164,16 +258,18 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
         }
 
         // FAB
-        FloatingActionButton(
-            onClick = { showAddDialog = true },
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(24.dp)
-        ) {
-            Icon(Icons.Rounded.Add, contentDescription = stringResource(UiCoreString.tasks_add))
+        if (!isAdding) {
+            FloatingActionButton(
+                onClick = { isAdding = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(24.dp)
+            ) {
+                Icon(Icons.Rounded.Add, contentDescription = stringResource(UiCoreString.tasks_add))
+            }
         }
 
         // Undo snackbar
@@ -190,67 +286,4 @@ fun TasksScreen(viewModel: TasksViewModel = koinViewModel()) {
             )
         }
     }
-
-    // Add task dialog
-    if (showAddDialog) {
-        AddTaskDialog(
-            onDismiss = { showAddDialog = false },
-            onConfirm = { title ->
-                viewModel.addTask(title)
-                showAddDialog = false
-            }
-        )
-    }
-}
-
-@Composable
-private fun AddTaskDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
-) {
-    var text by rememberSaveable { mutableStateOf("") }
-    val focusRequester = remember { FocusRequester() }
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(UiCoreString.tasks_add),
-                style = MaterialTheme.typography.titleLarge
-            )
-        },
-        text = {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-                placeholder = { Text(stringResource(UiCoreString.tasks_new_hint)) },
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(text.trim()) },
-                enabled = text.isNotBlank()
-            ) {
-                Text(stringResource(UiCoreString.tasks_add))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(UiCoreString.action_cancel))
-            }
-        }
-    )
 }
