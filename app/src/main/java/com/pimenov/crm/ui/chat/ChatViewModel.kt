@@ -5,10 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.pimenov.crm.core.database.usecase.NewConversationIdUseCase
 import com.pimenov.crm.core.database.usecase.ObserveChatMessagesUseCase
 import com.pimenov.crm.core.database.usecase.ObserveConversationsUseCase
+import com.pimenov.crm.domain.reminder.ReminderScheduler
 import com.pimenov.crm.domain.repository.ChatRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -24,8 +27,12 @@ class ChatViewModel(
     private val chatRepository: ChatRepository,
     observeChatMessages: ObserveChatMessagesUseCase,
     observeConversations: ObserveConversationsUseCase,
-    private val newConversationId: NewConversationIdUseCase
+    private val newConversationId: NewConversationIdUseCase,
+    private val reminderScheduler: ReminderScheduler
 ) : ViewModel() {
+
+    private val _requestNotificationPermission = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val requestNotificationPermission = _requestNotificationPermission.asSharedFlow()
 
     private val _state = MutableStateFlow(ChatState())
     val state = _state.asStateFlow()
@@ -48,6 +55,12 @@ class ChatViewModel(
                 isLoading = false,
                 error = result.exceptionOrNull()?.message
             )
+            if (result.isSuccess) {
+                val reply = result.getOrNull()?.content.orEmpty()
+                if ("\uD83D\uDD14" in reply && reminderScheduler.needsPermission()) {
+                    _requestNotificationPermission.tryEmit(Unit)
+                }
+            }
         }
     }
 

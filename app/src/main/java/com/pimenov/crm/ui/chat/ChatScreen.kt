@@ -1,5 +1,9 @@
 package com.pimenov.crm.ui.chat
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.pimenov.uikit.ErrorAlertDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +58,18 @@ fun ChatScreen(viewModel: ChatViewModel = koinViewModel()) {
     val messages by viewModel.messages.collectAsState()
     var input by rememberSaveable { mutableStateOf("") }
     val listState = rememberLazyListState()
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* granted or not — ReminderWorker handles gracefully */ }
+
+    LaunchedEffect(Unit) {
+        viewModel.requestNotificationPermission.collect {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {

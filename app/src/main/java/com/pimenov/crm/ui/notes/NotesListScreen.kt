@@ -32,7 +32,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pimenov.uikit.UiCoreString
@@ -41,6 +45,8 @@ import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+private val HighlightColor = Color(0xFFFDD835)
 
 @Composable
 fun NotesListScreen(
@@ -103,8 +109,9 @@ fun NotesListScreen(
                     items(notes, key = { it.id }) { note ->
                         NoteCard(
                             title = note.title.ifBlank { stringResource(UiCoreString.notes_untitled) },
-                            preview = note.content.take(120),
+                            preview = stripHtml(note.content).take(120),
                             date = formatDate(note.updatedAt),
+                            searchQuery = searchQuery,
                             onClick = { onNoteClick(note.id) },
                             onDelete = { viewModel.requestDelete(note) }
                         )
@@ -148,6 +155,7 @@ private fun NoteCard(
     title: String,
     preview: String,
     date: String,
+    searchQuery: String,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -169,7 +177,7 @@ private fun NoteCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = title,
+                    text = highlightMatches(title, searchQuery),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
@@ -186,7 +194,7 @@ private fun NoteCard(
             }
             if (preview.isNotBlank()) {
                 Text(
-                    text = preview,
+                    text = highlightMatches(preview, searchQuery),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
@@ -202,6 +210,29 @@ private fun NoteCard(
         }
     }
 }
+
+private fun highlightMatches(text: String, query: String): AnnotatedString {
+    if (query.isBlank()) return AnnotatedString(text)
+    return buildAnnotatedString {
+        append(text)
+        val lowerText = text.lowercase()
+        val lowerQuery = query.lowercase()
+        var start = 0
+        while (true) {
+            val index = lowerText.indexOf(lowerQuery, start)
+            if (index == -1) break
+            addStyle(
+                SpanStyle(background = HighlightColor),
+                start = index,
+                end = index + query.length
+            )
+            start = index + query.length
+        }
+    }
+}
+
+private fun stripHtml(html: String): String =
+    html.replace(Regex("<[^>]*>"), "").replace("&nbsp;", " ").trim()
 
 private fun formatDate(timestamp: Long): String {
     val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())

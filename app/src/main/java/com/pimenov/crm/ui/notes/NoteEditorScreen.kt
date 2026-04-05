@@ -1,28 +1,31 @@
 package com.pimenov.crm.ui.notes
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Redo
-import androidx.compose.material.icons.rounded.Undo
+import androidx.compose.material.icons.rounded.FormatBold
+import androidx.compose.material.icons.rounded.FormatItalic
+import androidx.compose.material.icons.rounded.FormatListBulleted
+import androidx.compose.material.icons.rounded.FormatListNumbered
+import androidx.compose.material.icons.rounded.FormatStrikethrough
+import androidx.compose.material.icons.rounded.FormatUnderlined
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -33,27 +36,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
 import com.pimenov.crm.core.database.model.Note
 import com.pimenov.uikit.UiCoreString
 import org.koin.androidx.compose.koinViewModel
-
-private data class EditorSnapshot(
-    val title: String,
-    val content: String
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,80 +65,38 @@ fun NoteEditorScreen(
     viewModel: NotesViewModel = koinViewModel()
 ) {
     var title by rememberSaveable { mutableStateOf("") }
-    var content by rememberSaveable { mutableStateOf("") }
     var existingNote by rememberSaveable { mutableStateOf<Note?>(null) }
     var loaded by rememberSaveable { mutableStateOf(false) }
+    var saved by remember { mutableStateOf(false) }
 
-    // Undo/Redo history
-    val history = remember { mutableStateListOf<EditorSnapshot>() }
-    var historyIndex by remember { mutableIntStateOf(-1) }
-    var isRestoringSnapshot by remember { mutableStateOf(false) }
-
-    fun pushSnapshot(t: String, c: String) {
-        if (isRestoringSnapshot) return
-        val current = if (historyIndex >= 0 && historyIndex < history.size) history[historyIndex] else null
-        if (current != null && current.title == t && current.content == c) return
-
-        // Drop any redo states after current index
-        while (history.size > historyIndex + 1) {
-            history.removeAt(history.lastIndex)
-        }
-        history.add(EditorSnapshot(t, c))
-        historyIndex = history.lastIndex
-    }
-
-    val canUndo = historyIndex > 0
-    val canRedo = historyIndex < history.lastIndex
+    val richTextState = rememberRichTextState()
 
     LaunchedEffect(noteId) {
         if (noteId != -1L && !loaded) {
             val note = viewModel.getNote(noteId)
             if (note != null) {
                 title = note.title
-                content = note.content
+                richTextState.setHtml(note.content)
                 existingNote = note
             }
             loaded = true
         } else {
             loaded = true
         }
-        pushSnapshot(title, content)
-    }
-
-    // Snapshot on word boundaries: space/newline/punctuation triggers immediate save,
-    // otherwise debounce 500ms so each undo step ≈ one word
-    LaunchedEffect(title, content) {
-        if (!loaded || isRestoringSnapshot) return@LaunchedEffect
-
-        val prev = if (historyIndex >= 0 && historyIndex < history.size) history[historyIndex] else null
-        val titleChanged = prev == null || prev.title != title
-        val contentChanged = prev == null || prev.content != content
-
-        val changedText = when {
-            contentChanged -> content
-            titleChanged -> title
-            else -> return@LaunchedEffect
-        }
-
-        // If last char is a word boundary, snapshot immediately
-        val lastChar = changedText.lastOrNull()
-        if (lastChar != null && (lastChar == ' ' || lastChar == '\n' || lastChar in ".,;:!?-—()")) {
-            pushSnapshot(title, content)
-        } else {
-            // Debounce — snapshot after 500ms pause
-            delay(500)
-            pushSnapshot(title, content)
-        }
     }
 
     fun performSave() {
-        if (title.isNotBlank() || content.isNotBlank()) {
+        if (saved) return
+        val htmlContent = richTextState.toHtml()
+        if (title.isNotBlank() || htmlContent.isNotBlank()) {
+            val now = System.currentTimeMillis()
             val note = existingNote?.copy(
                 title = title,
-                content = content,
-                updatedAt = System.currentTimeMillis()
-            ) ?: Note(title = title, content = content)
+                content = htmlContent,
+                updatedAt = now
+            ) ?: Note(title = title, content = htmlContent, updatedAt = now)
             viewModel.saveNote(note)
+            saved = true
         }
     }
 
@@ -152,6 +112,7 @@ fun NoteEditorScreen(
     )
 
     Scaffold(
+        modifier = Modifier.imePadding(),
         contentWindowInsets = WindowInsets(0),
         topBar = {
             TopAppBar(
@@ -178,28 +139,7 @@ fun NoteEditorScreen(
         },
         bottomBar = {
             EditorToolbar(
-                canUndo = canUndo,
-                canRedo = canRedo,
-                onUndo = {
-                    if (canUndo) {
-                        isRestoringSnapshot = true
-                        historyIndex--
-                        val snapshot = history[historyIndex]
-                        title = snapshot.title
-                        content = snapshot.content
-                        isRestoringSnapshot = false
-                    }
-                },
-                onRedo = {
-                    if (canRedo) {
-                        isRestoringSnapshot = true
-                        historyIndex++
-                        val snapshot = history[historyIndex]
-                        title = snapshot.title
-                        content = snapshot.content
-                        isRestoringSnapshot = false
-                    }
-                },
+                richTextState = richTextState,
                 onSave = {
                     performSave()
                     onBack()
@@ -234,9 +174,8 @@ fun NoteEditorScreen(
 
             Spacer(Modifier.height(4.dp))
 
-            TextField(
-                value = content,
-                onValueChange = { content = it },
+            RichTextEditor(
+                state = richTextState,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -249,7 +188,11 @@ fun NoteEditorScreen(
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onBackground
                 ),
-                colors = transparent
+                colors = RichTextEditorDefaults.richTextEditorColors(
+                    containerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
             )
         }
     }
@@ -257,15 +200,19 @@ fun NoteEditorScreen(
 
 @Composable
 private fun EditorToolbar(
-    canUndo: Boolean,
-    canRedo: Boolean,
-    onUndo: () -> Unit,
-    onRedo: () -> Unit,
+    richTextState: com.mohamedrejeb.richeditor.model.RichTextState,
     onSave: () -> Unit
 ) {
+    val currentSpanStyle = richTextState.currentSpanStyle
+    val isBold = currentSpanStyle.fontWeight == FontWeight.Bold
+    val isItalic = currentSpanStyle.fontStyle == FontStyle.Italic
+    val isUnderline = currentSpanStyle.textDecoration?.contains(TextDecoration.Underline) == true
+    val isStrikethrough = currentSpanStyle.textDecoration?.contains(TextDecoration.LineThrough) == true
+    val isUnorderedList = richTextState.isUnorderedList
+    val isOrderedList = richTextState.isOrderedList
+
     Column(
         modifier = Modifier
-            .imePadding()
             .navigationBarsPadding()
             .background(MaterialTheme.colorScheme.background)
     ) {
@@ -276,36 +223,53 @@ private fun EditorToolbar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = onUndo,
-                enabled = canUndo,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    Icons.Rounded.Undo,
-                    contentDescription = "Отменить",
-                    tint = if (canUndo) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            IconButton(
-                onClick = onRedo,
-                enabled = canRedo,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    Icons.Rounded.Redo,
-                    contentDescription = "Повторить",
-                    tint = if (canRedo) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            FormatButton(
+                icon = Icons.Rounded.FormatBold,
+                contentDescription = "Жирный",
+                isActive = isBold,
+                onClick = {
+                    richTextState.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold))
+                }
+            )
+            FormatButton(
+                icon = Icons.Rounded.FormatItalic,
+                contentDescription = "Курсив",
+                isActive = isItalic,
+                onClick = {
+                    richTextState.toggleSpanStyle(SpanStyle(fontStyle = FontStyle.Italic))
+                }
+            )
+            FormatButton(
+                icon = Icons.Rounded.FormatUnderlined,
+                contentDescription = "Подчёркнутый",
+                isActive = isUnderline,
+                onClick = {
+                    richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.Underline))
+                }
+            )
+            FormatButton(
+                icon = Icons.Rounded.FormatStrikethrough,
+                contentDescription = "Зачёркнутый",
+                isActive = isStrikethrough,
+                onClick = {
+                    richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.LineThrough))
+                }
+            )
+            FormatButton(
+                icon = Icons.Rounded.FormatListBulleted,
+                contentDescription = "Маркированный список",
+                isActive = isUnorderedList,
+                onClick = { richTextState.toggleUnorderedList() }
+            )
+            FormatButton(
+                icon = Icons.Rounded.FormatListNumbered,
+                contentDescription = "Нумерованный список",
+                isActive = isOrderedList,
+                onClick = { richTextState.toggleOrderedList() }
+            )
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -321,5 +285,28 @@ private fun EditorToolbar(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun FormatButton(
+    icon: ImageVector,
+    contentDescription: String,
+    isActive: Boolean,
+    onClick: () -> Unit
+) {
+    val tint = if (isActive) MaterialTheme.colorScheme.primary
+    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(40.dp)
+    ) {
+        Icon(
+            icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }

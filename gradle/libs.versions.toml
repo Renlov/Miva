@@ -22,6 +22,7 @@ coroutinesTest = "1.10.1"
 turbine = "1.2.0"
 composeMaterialIcons = "1.7.8"
 glance = "1.1.1"
+richeditor = "1.0.0-rc08"
 workRuntime = "2.10.1"
 firebaseBom = "33.14.0"
 googleServices = "4.4.2"
@@ -79,6 +80,9 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
+
+# Rich Text Editor
+richeditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditor" }
 
 # Testing
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }

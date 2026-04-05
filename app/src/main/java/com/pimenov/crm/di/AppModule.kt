@@ -31,6 +31,6 @@ val appModule = module {
 
     // ViewModels
     viewModel { NotesViewModel(get(), get(), get(), get(), get()) }
-    viewModel { ChatViewModel(get(), get(), get(), get()) }
+    viewModel { ChatViewModel(get(), get(), get(), get(), get()) }
     viewModel { TasksViewModel(get(), get(), get(), get()) }
 }

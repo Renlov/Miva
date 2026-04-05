@@ -69,6 +69,9 @@ dependencies {
     // Koin
     implementation(libs.koin.androidx.compose)
 
+    // Rich Text Editor
+    implementation(libs.richeditor.compose)
+
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
