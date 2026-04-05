@@ -35,15 +35,15 @@ class NoteSyncRepository(
                     uploadNote(uid, local)
                 }
                 local == null && remote != null -> {
-                    // Only on server — save locally
-                    noteRepository.save(remote)
+                    // Only on server — save locally without changing updatedAt
+                    noteRepository.saveExact(remote)
                 }
                 local != null && remote != null -> {
                     // Both exist — keep the newer one
                     if (local.updatedAt >= remote.updatedAt) {
                         uploadNote(uid, local)
                     } else {
-                        noteRepository.save(remote)
+                        noteRepository.saveExact(remote)
                     }
                 }
             }

@@ -9,6 +9,7 @@ interface NoteRepository {
     suspend fun getAll(): List<Note>
     suspend fun getById(id: Long): Note?
     suspend fun save(note: Note): Long
+    suspend fun saveExact(note: Note): Long
     suspend fun delete(id: Long)
     suspend fun deleteAll()
 }

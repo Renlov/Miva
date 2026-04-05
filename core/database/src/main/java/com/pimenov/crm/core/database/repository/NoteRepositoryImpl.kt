@@ -23,6 +23,9 @@ internal class NoteRepositoryImpl(private val dao: NoteDao) : NoteRepository {
     override suspend fun save(note: Note): Long =
         dao.insert(NoteEntity.fromDomain(note.copy(updatedAt = System.currentTimeMillis())))
 
+    override suspend fun saveExact(note: Note): Long =
+        dao.insert(NoteEntity.fromDomain(note))
+
     override suspend fun delete(id: Long) = dao.delete(id)
 
     override suspend fun deleteAll() = dao.deleteAll()
