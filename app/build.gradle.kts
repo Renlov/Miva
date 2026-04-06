@@ -78,6 +78,11 @@ dependencies {
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
+    // Credential Manager (Google Sign-In)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services)
+    implementation(libs.google.id)
+
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)

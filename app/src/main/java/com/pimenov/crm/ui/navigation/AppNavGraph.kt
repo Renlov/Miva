@@ -11,6 +11,7 @@ import com.pimenov.crm.feature.settings.api.SettingsFeatureApi
 import com.pimenov.crm.ui.chat.ChatScreen
 import com.pimenov.crm.ui.notes.NoteEditorScreen
 import com.pimenov.crm.ui.notes.NotesListScreen
+import com.pimenov.crm.ui.profile.ProfileScreen
 import com.pimenov.crm.ui.tasks.TasksScreen
 import org.koin.compose.koinInject
 
@@ -51,6 +52,10 @@ fun AppNavGraph(navController: NavHostController, modifier: Modifier = Modifier)
 
         composable(Screen.Tasks.route) {
             TasksScreen()
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen()
         }
 
         settingsFeature.registerGraph(this, navController)

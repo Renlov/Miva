@@ -6,6 +6,7 @@
     <string name="nav_notes">Заметки</string>
     <string name="nav_chat">AI Чат</string>
     <string name="nav_tasks">Задачи</string>
+    <string name="nav_profile">Профиль</string>
     <string name="nav_settings">Настройки</string>
 
     <!-- Notes -->
@@ -65,6 +66,9 @@
     <string name="settings_account_syncing">Синхронизация заметок…</string>
     <string name="settings_account_sync_done">Заметки синхронизированы</string>
     <string name="settings_account_sync_error">Ошибка синхронизации: %s</string>
+    <string name="profile_not_signed_in">Войдите для синхронизации заметок</string>
+    <string name="profile_sign_in_description">Войдите через Google для резервного копирования и синхронизации заметок между устройствами</string>
+    <string name="profile_sync_notes">Синхронизировать</string>
     <string name="settings_section_about">О приложении</string>
     <string name="settings_about_version">CRM Заметки v1.0</string>
 
