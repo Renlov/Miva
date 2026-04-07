@@ -23,7 +23,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
@@ -78,14 +77,12 @@ private fun SettingsContent(
 ) {
     var apiKeyInput by rememberSaveable { mutableStateOf("") }
 
-    Scaffold { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
             Spacer(Modifier.height(16.dp))
 
             Text(
@@ -250,7 +247,6 @@ private fun SettingsContent(
 
             Spacer(Modifier.height(40.dp))
         }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
