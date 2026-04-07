@@ -82,7 +82,7 @@ firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
-firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
+firebase-functions = { group = "com.google.firebase", name = "firebase-functions" }
 
 # Credential Manager (Google Sign-In)
 credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
