@@ -1,42 +1,53 @@
 package com.pimenov.crm.domain.agent
 
 import com.google.firebase.Firebase
-import com.google.firebase.ai.ai
-import com.google.firebase.ai.type.GenerativeBackend
-import com.google.firebase.ai.type.content
-import com.google.firebase.ai.type.generationConfig
+import com.google.firebase.functions.functions
 import com.pimenov.crm.core.database.model.ChatMessage
+import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
 
 class TextAnalyzerAgent {
 
-    private val model = Firebase.ai(backend = GenerativeBackend.googleAI())
-        .generativeModel(
-            modelName = "gemini-2.0-flash",
-            generationConfig = generationConfig {
-                responseMimeType = "application/json"
-            },
-            systemInstruction = content { text(SYSTEM_PROMPT) }
-        )
+    private val functions = Firebase.functions
 
     suspend fun analyze(
         history: List<ChatMessage>,
         userMessage: String
     ): AgentResult {
-        val chatHistory = history.map { msg ->
-            val role = if (msg.role == "user") "user" else "model"
-            content(role = role) { text(msg.content) }
+        val contents = buildList {
+            for (msg in history) {
+                val role = if (msg.role == "user") "user" else "model"
+                add(
+                    mapOf(
+                        "role" to role,
+                        "parts" to listOf(mapOf("text" to msg.content))
+                    )
+                )
+            }
+            add(
+                mapOf(
+                    "role" to "user",
+                    "parts" to listOf(mapOf("text" to userMessage))
+                )
+            )
         }
 
-        val chat = model.startChat(history = chatHistory)
-        val response = chat.sendMessage(userMessage)
-        val json = response.text ?: return AgentResult(
-            reply = "Нет ответа",
-            notes = emptyList(),
-            tasks = emptyList()
+        val data = mapOf(
+            "contents" to contents,
+            "systemInstruction" to mapOf(
+                "role" to "user",
+                "parts" to listOf(mapOf("text" to SYSTEM_PROMPT))
+            )
         )
 
-        return parseResponse(json)
+        val result = functions.getHttpsCallable("chat").call(data).await()
+
+        @Suppress("UNCHECKED_CAST")
+        val responseMap = result.data as? Map<String, Any?>
+        val text = responseMap?.get("text") as? String
+            ?: return AgentResult(reply = "Нет ответа", notes = emptyList(), tasks = emptyList())
+
+        return parseResponse(text)
     }
 
     private fun parseResponse(json: String): AgentResult {
