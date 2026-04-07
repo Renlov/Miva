@@ -119,8 +119,11 @@ class IntentParser {
             lower.contains("пятниц") -> setNextDayOfWeek(cal, Calendar.FRIDAY)
             lower.contains("суббот") -> setNextDayOfWeek(cal, Calendar.SATURDAY)
             lower.contains("воскресень") -> setNextDayOfWeek(cal, Calendar.SUNDAY)
+            clockMatch != null -> {
+                // Only time specified (e.g. "в 19:28") — stay on today
+            }
             else -> {
-                // No recognizable date → default to tomorrow 9:00
+                // No recognizable date or time → default to tomorrow 9:00
                 cal.add(Calendar.DAY_OF_YEAR, 1)
             }
         }
