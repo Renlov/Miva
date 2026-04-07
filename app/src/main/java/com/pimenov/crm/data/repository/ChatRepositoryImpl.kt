@@ -12,7 +12,7 @@ import com.pimenov.crm.domain.agent.ExtractedTask
 import com.pimenov.crm.domain.agent.IntentParser
 import com.pimenov.crm.domain.agent.TextAnalyzerAgent
 import com.pimenov.crm.domain.reminder.ReminderScheduler
-import com.pimenov.crm.domain.repository.ChatRepository
+import com.pimenov.crm.core.domain.repository.ChatRepository
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

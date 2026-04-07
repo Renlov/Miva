@@ -43,8 +43,17 @@ android {
 dependencies {
     implementation(project(":uikit"))
     implementation(project(":core:database"))
+    implementation(project(":core:domain"))
     implementation(project(":feature:settings:api"))
     implementation(project(":feature:settings:impl"))
+    implementation(project(":feature:notes:api"))
+    implementation(project(":feature:notes:impl"))
+    implementation(project(":feature:tasks:api"))
+    implementation(project(":feature:tasks:impl"))
+    implementation(project(":feature:chat:api"))
+    implementation(project(":feature:chat:impl"))
+    implementation(project(":feature:profile:api"))
+    implementation(project(":feature:profile:impl"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

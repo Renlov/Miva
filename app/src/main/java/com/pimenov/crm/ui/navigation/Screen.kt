@@ -8,7 +8,11 @@ import androidx.compose.material.icons.rounded.Checklist
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.pimenov.crm.feature.chat.api.ChatNavigationRoute
+import com.pimenov.crm.feature.notes.api.NotesNavigationRoute
+import com.pimenov.crm.feature.profile.api.ProfileNavigationRoute
 import com.pimenov.crm.feature.settings.api.SettingsNavigationRoute
+import com.pimenov.crm.feature.tasks.api.TasksNavigationRoute
 import com.pimenov.uikit.UiCoreString
 
 sealed class Screen(
@@ -17,16 +21,11 @@ sealed class Screen(
     val icon: ImageVector,
     val showLabel: Boolean = true
 ) {
-    data object Notes : Screen("notes", UiCoreString.nav_notes, Icons.AutoMirrored.Rounded.Notes)
-    data object Tasks : Screen("tasks", UiCoreString.nav_tasks, Icons.Rounded.Checklist)
-    data object Chat : Screen("chat", UiCoreString.nav_chat, Icons.AutoMirrored.Rounded.Chat, showLabel = false)
-    data object Profile : Screen("profile", UiCoreString.nav_profile, Icons.Rounded.Person)
+    data object Notes : Screen(NotesNavigationRoute.ROOT, UiCoreString.nav_notes, Icons.AutoMirrored.Rounded.Notes)
+    data object Tasks : Screen(TasksNavigationRoute.ROOT, UiCoreString.nav_tasks, Icons.Rounded.Checklist)
+    data object Chat : Screen(ChatNavigationRoute.ROOT, UiCoreString.nav_chat, Icons.AutoMirrored.Rounded.Chat, showLabel = false)
+    data object Profile : Screen(ProfileNavigationRoute.ROOT, UiCoreString.nav_profile, Icons.Rounded.Person)
     data object Settings : Screen(SettingsNavigationRoute.ROOT, UiCoreString.nav_settings, Icons.Rounded.Settings)
-}
-
-data object NoteEditor {
-    const val ROUTE = "note_editor/{noteId}"
-    fun createRoute(noteId: Long = -1L) = "note_editor/$noteId"
 }
 
 val bottomNavItems = listOf(Screen.Notes, Screen.Tasks, Screen.Chat, Screen.Profile, Screen.Settings)

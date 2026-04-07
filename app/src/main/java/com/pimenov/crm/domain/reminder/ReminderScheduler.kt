@@ -11,9 +11,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
 
-class ReminderScheduler(private val context: Context) {
+import com.pimenov.crm.core.domain.reminder.ReminderPermissionChecker
 
-    fun needsPermission(): Boolean {
+class ReminderScheduler(private val context: Context) : ReminderPermissionChecker {
+
+    override fun needsPermission(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
         return ContextCompat.checkSelfPermission(
             context, Manifest.permission.POST_NOTIFICATIONS
