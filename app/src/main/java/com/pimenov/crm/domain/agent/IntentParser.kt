@@ -78,11 +78,11 @@ class IntentParser {
             lower.contains("сегодня") -> {
                 // already today
             }
-            lower.contains("завтра") -> {
-                cal.add(Calendar.DAY_OF_YEAR, 1)
-            }
             lower.contains("послезавтра") -> {
                 cal.add(Calendar.DAY_OF_YEAR, 2)
+            }
+            WORD_ZAVTRA.containsMatchIn(lower) -> {
+                cal.add(Calendar.DAY_OF_YEAR, 1)
             }
             lower.contains("через полчаса") || lower.contains("через 30 минут") -> {
                 cal.add(Calendar.MINUTE, 30)
@@ -180,6 +180,8 @@ class IntentParser {
             "(?:нужно|надо|необходимо|добавь задачу|создай задачу|поставь задачу)"
         )
 
+        private val WORD_ZAVTRA = Regex("завтра(?![а-яё])")
+
         private val CLOCK_PATTERN = Regex(
             "в\\s+(\\d{1,2}):(\\d{2})"
         )
@@ -210,7 +212,7 @@ class IntentParser {
 
         private val TIME_PATTERNS = listOf(
             Regex("послезавтра\\s*(?:в\\s+\\d{1,2}:\\d{2})?"),
-            Regex("завтра\\s*(?:в\\s+\\d{1,2}:\\d{2})?"),
+            Regex("завтра(?![а-яё])\\s*(?:в\\s+\\d{1,2}:\\d{2})?"),
             Regex("сегодня\\s*(?:в\\s+\\d{1,2}:\\d{2})?"),
             Regex("в\\s+(?:понедельник|вторник|среду|четверг|пятницу|субботу|воскресенье)\\s*(?:в\\s+\\d{1,2}:\\d{2})?"),
             Regex("через\\s+$WORD_OR_DIGIT\\s*(?:минут|час)\\w*"),
